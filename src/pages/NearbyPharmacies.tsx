@@ -68,7 +68,7 @@ export default function NearbyPharmacies() {
     setStatusMsg(label ? `Searching for pharmacies near ${label}...` : "Finding nearby pharmacies...");
     try {
       const radius = 5000;
-      const query = `[out:json][timeout:10];node["amenity"="pharmacy"](around:${radius},${lat},${lng});out body;`;
+      const query = `[out:json][timeout:10];(node["amenity"="pharmacy"](around:${radius},${lat},${lng});node["amenity"="hospital"](around:${radius},${lat},${lng}););out body;`;
       const res = await fetch("https://overpass-api.de/api/interpreter", {
         method: "POST",
         body: `data=${encodeURIComponent(query)}`,
@@ -77,11 +77,14 @@ export default function NearbyPharmacies() {
       const data = await res.json();
       const results: Pharmacy[] = (data.elements || []).map((el: any, i: number) => ({
         id: el.id || i,
-        name: el.tags?.name || "Pharmacy",
+        name: el.tags?.name || (el.tags?.amenity === "hospital" ? "Hospital" : "Pharmacy"),
         address: el.tags?.["addr:street"] ? `${el.tags["addr:housenumber"] || ""} ${el.tags["addr:street"]}`.trim() : (el.tags?.["addr:full"] || "Address not available"),
         lat: el.lat,
         lng: el.lon,
         distance: haversine(lat, lng, el.lat, el.lon),
+        phone: el.tags?.phone || el.tags?.["contact:phone"] || null,
+        openingHours: el.tags?.opening_hours || null,
+        type: el.tags?.amenity as "pharmacy" | "hospital",
       }));
       results.sort((a, b) => a.distance - b.distance);
       setPharmacies(results);
