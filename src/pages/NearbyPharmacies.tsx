@@ -217,15 +217,15 @@ export default function NearbyPharmacies() {
           <div style="font-size:12px;color:#64748b;margin-bottom:4px;">⏰ ${p.openingHours || "Hours not listed"}</div>
           <div style="font-size:12px;color:#64748b;margin-bottom:8px;">📏 ${formatDist(p.distance)} away</div>
           <div style="display:flex;flex-direction:column;gap:6px;">
-            <a href="${gUrl}" target="_blank" rel="noopener noreferrer"
-               style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:8px 12px;background:#2563eb;color:white;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;transition:background 0.15s;"
+            <button data-directions-google="${gUrl}"
+               style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:8px 12px;background:#2563eb;color:white;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;border:none;"
                onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
               🗺️ Get Directions
-            </a>
-            <a href="${osmUrl}" target="_blank" rel="noopener noreferrer"
-               style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:5px 10px;background:transparent;color:#2563eb;border:1px solid #2563eb;border-radius:8px;font-size:11px;font-weight:500;text-decoration:none;cursor:pointer;">
+            </button>
+            <button data-directions-osm="${osmUrl}"
+               style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:5px 10px;background:transparent;color:#2563eb;border:1px solid #2563eb;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;">
               OpenStreetMap Directions
-            </a>
+            </button>
             <button onclick="document.dispatchEvent(new CustomEvent('pharmacy-detail',{detail:${p.id}}))"
                style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:6px 10px;background:#16a34a;color:white;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">
               📋 Details
@@ -240,6 +240,20 @@ export default function NearbyPharmacies() {
         .on("click", () => {
           setSelectedId(p.id);
           map.setView([p.lat, p.lng], 16);
+        })
+        .on("popupopen", () => {
+          const container = marker.getPopup()?.getElement();
+          if (!container) return;
+          container.querySelector<HTMLButtonElement>("[data-directions-google]")?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(gUrl, "_blank", "noopener,noreferrer");
+          });
+          container.querySelector<HTMLButtonElement>("[data-directions-osm]")?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(osmUrl, "_blank", "noopener,noreferrer");
+          });
         });
 
       markersRef.current.push(marker);
@@ -324,24 +338,24 @@ export default function NearbyPharmacies() {
                 <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {formatDist(p.distance)}</span>
               </div>
               <div className="flex flex-col gap-1.5">
-                <a
-                  href={getDirectionsUrl(p.lat, p.lng, userPos?.[0], userPos?.[1])}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(getDirectionsUrl(p.lat, p.lng, userPos?.[0], userPos?.[1]), "_blank", "noopener,noreferrer");
+                  }}
                   className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
                 >
                   <Navigation className="w-3 h-3" /> 🗺️ Get Directions <ExternalLink className="w-3 h-3" />
-                </a>
-                <a
-                  href={getOsmDirectionsUrl(p.lat, p.lng, userPos?.[0], userPos?.[1])}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(getOsmDirectionsUrl(p.lat, p.lng, userPos?.[0], userPos?.[1]), "_blank", "noopener,noreferrer");
+                  }}
                   className="inline-flex items-center gap-1.5 text-[10px] font-medium px-3 py-1 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
                 >
                   OSM Directions
-                </a>
+                </button>
               </div>
             </div>
           ))}
