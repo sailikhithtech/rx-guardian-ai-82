@@ -1,32 +1,39 @@
 import { motion } from "framer-motion";
-import { ArrowLeftRight, BadgeCheck, Info } from "lucide-react";
+import { ArrowLeftRight, BadgeCheck, Info, ExternalLink } from "lucide-react";
 
 const alternatives = [
   {
-    original: "Metformin (Glucophage)",
+    original: "Metformin (Glycomet)",
     options: [
-      { brand: "Glucophage", generic: "Metformin HCl", cost: "$15.00", savings: "-", best: false },
-      { brand: "Fortamet", generic: "Metformin HCl ER", cost: "$22.00", savings: "-$7.00", best: false },
-      { brand: "Generic Metformin", generic: "Metformin HCl", cost: "$4.00", savings: "$11.00", best: true },
+      { brand: "Glycomet 500mg", generic: "Metformin HCl", cost: "₹ 110.00", savings: "-", best: false },
+      { brand: "Gluconorm SR", generic: "Metformin HCl SR", cost: "₹ 135.00", savings: "-₹ 25.00", best: false },
+      { brand: "Generic Metformin", generic: "Metformin HCl", cost: "₹ 32.00", savings: "₹ 78.00", best: true },
     ],
   },
   {
-    original: "Amoxicillin (Amoxil)",
+    original: "Amoxicillin (Novamox)",
     options: [
-      { brand: "Amoxil", generic: "Amoxicillin", cost: "$12.00", savings: "-", best: false },
-      { brand: "Trimox", generic: "Amoxicillin", cost: "$10.50", savings: "$1.50", best: false },
-      { brand: "Generic Amoxicillin", generic: "Amoxicillin", cost: "$4.00", savings: "$8.00", best: true },
+      { brand: "Novamox 500mg", generic: "Amoxicillin", cost: "₹ 95.00", savings: "-", best: false },
+      { brand: "Mox 500", generic: "Amoxicillin", cost: "₹ 72.00", savings: "₹ 23.00", best: false },
+      { brand: "Generic Amoxicillin", generic: "Amoxicillin", cost: "₹ 28.00", savings: "₹ 67.00", best: true },
     ],
   },
   {
-    original: "Omeprazole (Prilosec)",
+    original: "Omeprazole (Omez)",
     options: [
-      { brand: "Prilosec", generic: "Omeprazole", cost: "$25.00", savings: "-", best: false },
-      { brand: "Zegerid", generic: "Omeprazole + NaHCO3", cost: "$30.00", savings: "-$5.00", best: false },
-      { brand: "Generic Omeprazole", generic: "Omeprazole", cost: "$6.00", savings: "$19.00", best: true },
+      { brand: "Omez 20mg", generic: "Omeprazole", cost: "₹ 120.00", savings: "-", best: false },
+      { brand: "Ocid 20", generic: "Omeprazole", cost: "₹ 98.00", savings: "₹ 22.00", best: false },
+      { brand: "Generic Omeprazole", generic: "Omeprazole", cost: "₹ 35.00", savings: "₹ 85.00", best: true },
     ],
   },
 ];
+
+const pharmacyUrl = (name: string, site: "1mg" | "pharmeasy") => {
+  const q = encodeURIComponent(name);
+  return site === "1mg"
+    ? `https://www.1mg.com/search/all?name=${q}`
+    : `https://pharmeasy.in/search/all?name=${q}`;
+};
 
 export default function Alternatives() {
   return (
@@ -56,24 +63,47 @@ export default function Alternatives() {
                   <tr className="border-b border-border">
                     <th className="text-left p-4 font-medium text-muted-foreground">Brand</th>
                     <th className="text-left p-4 font-medium text-muted-foreground">Generic Name</th>
-                    <th className="text-right p-4 font-medium text-muted-foreground">Est. Cost</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">Est. Cost / Strip</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">Savings</th>
+                    <th className="text-center p-4 font-medium text-muted-foreground">Order Online</th>
                   </tr>
                 </thead>
                 <tbody>
                   {group.options.map((opt, j) => (
                     <tr key={j} className={`border-b border-border last:border-0 ${opt.best ? "bg-success/5" : ""}`}>
-                      <td className="p-4 font-medium flex items-center gap-2">
-                        {opt.brand}
-                        {opt.best && (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-success bg-success/10 px-2 py-0.5 rounded-full">
-                            <BadgeCheck className="w-3 h-3" /> Best Value
-                          </span>
-                        )}
+                      <td className="p-4 font-medium">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {opt.brand}
+                          {opt.best && (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-success bg-success/10 px-2 py-0.5 rounded-full">
+                              <BadgeCheck className="w-3 h-3" /> Best Value
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4 text-muted-foreground">{opt.generic}</td>
                       <td className="p-4 text-right font-medium">{opt.cost}</td>
                       <td className={`p-4 text-right font-medium ${opt.best ? "text-success" : "text-muted-foreground"}`}>{opt.savings}</td>
+                      <td className="p-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <a
+                            href={pharmacyUrl(opt.brand, "1mg")}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                          >
+                            1mg <ExternalLink className="w-3 h-3" />
+                          </a>
+                          <a
+                            href={pharmacyUrl(opt.brand, "pharmeasy")}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-secondary/10 text-secondary-foreground hover:bg-secondary/20 transition-colors"
+                          >
+                            PharmEasy <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
