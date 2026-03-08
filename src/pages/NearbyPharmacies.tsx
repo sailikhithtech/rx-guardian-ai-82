@@ -179,13 +179,60 @@ export default function NearbyPharmacies() {
     if (!map) return;
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
+    markerMapRef.current.clear();
+
     pharmacies.forEach((p) => {
-      const marker = L.marker([p.lat, p.lng], { icon: pharmacyIcon })
+      const icon = p.type === "hospital"
+        ? L.divIcon({
+            className: "leaflet-hospital-marker",
+            html: `<div style="width:36px;height:36px;background:#ef4444;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer">🏥</div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -20],
+          })
+        : pharmacyIcon;
+
+      const popupContent = `
+        <div style="min-width:220px;font-family:system-ui,sans-serif;">
+          <div style="font-weight:700;font-size:15px;color:#1d4ed8;margin-bottom:6px;">
+            ${p.type === "hospital" ? "🏥" : "💊"} ${p.name}
+          </div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">📍 ${p.address}</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">📞 ${p.phone || "Not available"}</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">⏰ ${p.openingHours || "Hours not listed"}</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:8px;">📏 ${formatDist(p.distance)} away</div>
+          <div style="display:flex;gap:6px;">
+            <a href="${getDirectionsUrl(p.lat, p.lng)}" target="_blank" rel="noopener noreferrer"
+               style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:6px 10px;background:#2563eb;color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;">
+              🗺️ Directions
+            </a>
+            <button onclick="document.dispatchEvent(new CustomEvent('pharmacy-detail',{detail:${p.id}}))"
+               style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:6px 10px;background:#16a34a;color:white;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">
+              📋 Details
+            </button>
+          </div>
+        </div>
+      `;
+
+      const marker = L.marker([p.lat, p.lng], { icon, interactive: true, bubblingMouseEvents: false })
         .addTo(map)
-        .bindPopup(`<b>${p.name}</b><br/><span style="font-size:12px">${p.address}</span><br/><a href="${getDirectionsUrl(p.lat, p.lng)}" target="_blank" style="font-size:12px;color:#3b82f6">Get Directions →</a>`)
-        .on("click", () => setSelectedId(p.id));
+        .bindPopup(popupContent, { closeButton: true, maxWidth: 280, className: "pharmacy-popup" })
+        .on("click", () => {
+          setSelectedId(p.id);
+          map.setView([p.lat, p.lng], 16);
+        });
+
       markersRef.current.push(marker);
+      markerMapRef.current.set(p.id, marker);
     });
+
+    // Listen for detail button clicks from popups
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent).detail;
+      setSelectedId(id);
+    };
+    document.addEventListener("pharmacy-detail", handler);
+    return () => document.removeEventListener("pharmacy-detail", handler);
   }, [pharmacies]);
 
   const formatDist = (km: number) => km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
