@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Navigation, Clock, Star, Phone, ExternalLink, Search, LocateFixed, Filter } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import "leaflet/dist/leaflet.css";
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -30,7 +29,7 @@ interface Pharmacy {
   is24hr: boolean;
 }
 
-const DEFAULT_CENTER: [number, number] = [17.385, 78.4867]; // Hyderabad
+const DEFAULT_CENTER: [number, number] = [17.385, 78.4867];
 
 const pharmacies: Pharmacy[] = [
   { id: 1, name: "MedPlus Pharmacy", address: "Road No. 12, Banjara Hills, Hyderabad", phone: "+91 40 2335 5678", lat: 17.4156, lng: 78.4347, distance: "0.8 km", rating: 4.5, open: true, is24hr: false },
@@ -105,7 +104,7 @@ export default function NearbyPharmacies() {
 
       {/* Search + Location + Filters */}
       <div className="space-y-3">
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -141,7 +140,7 @@ export default function NearbyPharmacies() {
       <div className="grid lg:grid-cols-5 gap-6">
         {/* Map */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-3 bg-card rounded-2xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
-          <MapContainer center={center} zoom={13} scrollWheelZoom style={{ height: "100%", minHeight: 420 }} className="z-0">
+          <MapContainer center={center} zoom={13} scrollWheelZoom style={{ height: "100%", minHeight: 420, zIndex: 0 }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -152,13 +151,14 @@ export default function NearbyPharmacies() {
                 <Popup>
                   <div className="text-sm space-y-1 min-w-[180px]">
                     <p className="font-semibold">{p.name}</p>
-                    <p className="text-muted-foreground text-xs">{p.address}</p>
+                    <p className="text-xs" style={{ color: "#666" }}>{p.address}</p>
                     <p className="text-xs flex items-center gap-1"><Phone className="w-3 h-3" /> {p.phone}</p>
                     <a
                       href={getDirectionsUrl(p.lat, p.lng)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline mt-1"
+                      className="inline-flex items-center gap-1 text-xs font-medium mt-1"
+                      style={{ color: "#4F8EF7" }}
                     >
                       <Navigation className="w-3 h-3" /> Get Directions
                     </a>
