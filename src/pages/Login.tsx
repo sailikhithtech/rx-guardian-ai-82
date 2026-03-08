@@ -10,11 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import emailjs from "@emailjs/browser";
 
-type Step = "form" | "otp" | "success";
+emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY);
 
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+type Step = "form" | "otp" | "success";
 
 export default function Login() {
   const [isSignup, setIsSignup] = useState(false);
