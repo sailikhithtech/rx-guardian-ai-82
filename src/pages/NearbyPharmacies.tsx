@@ -13,6 +13,9 @@ interface Pharmacy {
   lat: number;
   lng: number;
   distance: number;
+  phone: string | null;
+  openingHours: string | null;
+  type: "pharmacy" | "hospital";
 }
 
 const DEFAULT_CENTER: [number, number] = [17.385, 78.4867];
@@ -30,17 +33,22 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 const userIcon = L.divIcon({
-  className: "",
-  html: `<div style="width:18px;height:18px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.6)"></div>`,
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
+  className: "leaflet-user-marker",
+  html: `<div style="width:24px;height:24px;position:relative;">
+    <div style="width:24px;height:24px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.5);position:relative;z-index:2"></div>
+    <div style="width:24px;height:24px;background:#3b82f6;border-radius:50%;position:absolute;top:0;left:0;opacity:0.3;animation:pulse 2s infinite"></div>
+  </div>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+  popupAnchor: [0, -14],
 });
 
 const pharmacyIcon = L.divIcon({
-  className: "",
-  html: `<div style="width:14px;height:14px;background:#ef4444;border:2px solid white;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,0.3)"></div>`,
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
+  className: "leaflet-pharmacy-marker",
+  html: `<div style="width:36px;height:36px;background:#16a34a;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer">💊</div>`,
+  iconSize: [36, 36],
+  iconAnchor: [18, 18],
+  popupAnchor: [0, -20],
 });
 
 export default function NearbyPharmacies() {
@@ -52,6 +60,7 @@ export default function NearbyPharmacies() {
   const [searching, setSearching] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const markerMapRef = useRef<Map<number, L.Marker>>(new Map());
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -62,7 +71,7 @@ export default function NearbyPharmacies() {
     setStatusMsg(label ? `Searching for pharmacies near ${label}...` : "Finding nearby pharmacies...");
     try {
       const radius = 5000;
-      const query = `[out:json][timeout:10];node["amenity"="pharmacy"](around:${radius},${lat},${lng});out body;`;
+      const query = `[out:json][timeout:10];(node["amenity"="pharmacy"](around:${radius},${lat},${lng});node["amenity"="hospital"](around:${radius},${lat},${lng}););out body;`;
       const res = await fetch("https://overpass-api.de/api/interpreter", {
         method: "POST",
         body: `data=${encodeURIComponent(query)}`,
@@ -71,11 +80,14 @@ export default function NearbyPharmacies() {
       const data = await res.json();
       const results: Pharmacy[] = (data.elements || []).map((el: any, i: number) => ({
         id: el.id || i,
-        name: el.tags?.name || "Pharmacy",
+        name: el.tags?.name || (el.tags?.amenity === "hospital" ? "Hospital" : "Pharmacy"),
         address: el.tags?.["addr:street"] ? `${el.tags["addr:housenumber"] || ""} ${el.tags["addr:street"]}`.trim() : (el.tags?.["addr:full"] || "Address not available"),
         lat: el.lat,
         lng: el.lon,
         distance: haversine(lat, lng, el.lat, el.lon),
+        phone: el.tags?.phone || el.tags?.["contact:phone"] || null,
+        openingHours: el.tags?.opening_hours || null,
+        type: el.tags?.amenity as "pharmacy" | "hospital",
       }));
       results.sort((a, b) => a.distance - b.distance);
       setPharmacies(results);
@@ -167,13 +179,60 @@ export default function NearbyPharmacies() {
     if (!map) return;
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
+    markerMapRef.current.clear();
+
     pharmacies.forEach((p) => {
-      const marker = L.marker([p.lat, p.lng], { icon: pharmacyIcon })
+      const icon = p.type === "hospital"
+        ? L.divIcon({
+            className: "leaflet-hospital-marker",
+            html: `<div style="width:36px;height:36px;background:#ef4444;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer">🏥</div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -20],
+          })
+        : pharmacyIcon;
+
+      const popupContent = `
+        <div style="min-width:220px;font-family:system-ui,sans-serif;">
+          <div style="font-weight:700;font-size:15px;color:#1d4ed8;margin-bottom:6px;">
+            ${p.type === "hospital" ? "🏥" : "💊"} ${p.name}
+          </div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">📍 ${p.address}</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">📞 ${p.phone || "Not available"}</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">⏰ ${p.openingHours || "Hours not listed"}</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:8px;">📏 ${formatDist(p.distance)} away</div>
+          <div style="display:flex;gap:6px;">
+            <a href="${getDirectionsUrl(p.lat, p.lng)}" target="_blank" rel="noopener noreferrer"
+               style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:6px 10px;background:#2563eb;color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;">
+              🗺️ Directions
+            </a>
+            <button onclick="document.dispatchEvent(new CustomEvent('pharmacy-detail',{detail:${p.id}}))"
+               style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:6px 10px;background:#16a34a;color:white;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">
+              📋 Details
+            </button>
+          </div>
+        </div>
+      `;
+
+      const marker = L.marker([p.lat, p.lng], { icon, interactive: true, bubblingMouseEvents: false })
         .addTo(map)
-        .bindPopup(`<b>${p.name}</b><br/><span style="font-size:12px">${p.address}</span><br/><a href="${getDirectionsUrl(p.lat, p.lng)}" target="_blank" style="font-size:12px;color:#3b82f6">Get Directions →</a>`)
-        .on("click", () => setSelectedId(p.id));
+        .bindPopup(popupContent, { closeButton: true, maxWidth: 280, className: "pharmacy-popup" })
+        .on("click", () => {
+          setSelectedId(p.id);
+          map.setView([p.lat, p.lng], 16);
+        });
+
       markersRef.current.push(marker);
+      markerMapRef.current.set(p.id, marker);
     });
+
+    // Listen for detail button clicks from popups
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent).detail;
+      setSelectedId(id);
+    };
+    document.addEventListener("pharmacy-detail", handler);
+    return () => document.removeEventListener("pharmacy-detail", handler);
   }, [pharmacies]);
 
   const formatDist = (km: number) => km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
@@ -219,7 +278,7 @@ export default function NearbyPharmacies() {
 
       <div className="grid lg:grid-cols-5 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-3 bg-card rounded-2xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
-          <div ref={mapContainerRef} style={{ height: "100%", minHeight: 420, zIndex: 0 }} />
+          <div ref={mapContainerRef} style={{ height: "100%", minHeight: 420, zIndex: 1 }} />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="lg:col-span-2 space-y-3 max-h-[520px] overflow-y-auto pr-1">
@@ -229,7 +288,14 @@ export default function NearbyPharmacies() {
           {pharmacies.map((p) => (
             <div
               key={p.id}
-              onClick={() => { setSelectedId(p.id); mapRef.current?.setView([p.lat, p.lng], 16); }}
+              onClick={() => {
+                setSelectedId(p.id);
+                const marker = markerMapRef.current.get(p.id);
+                if (marker && mapRef.current) {
+                  mapRef.current.setView([p.lat, p.lng], 16);
+                  marker.openPopup();
+                }
+              }}
               className={`bg-card rounded-xl border p-4 space-y-2 cursor-pointer transition-all hover:shadow-md ${selectedId === p.id ? "border-primary ring-1 ring-primary/20" : "border-border"}`}
             >
               <h3 className="font-semibold text-sm">{p.name}</h3>
