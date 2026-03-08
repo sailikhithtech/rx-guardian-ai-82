@@ -51,19 +51,37 @@ export default function Login() {
 
   useEffect(() => {
     if (step !== "success") return;
-    const timer = setTimeout(() => navigate(from, { replace: true }), 2000);
+    const timer = setTimeout(() => navigate(from, { replace: true }), 1500);
     return () => clearTimeout(timer);
   }, [step, navigate, from]);
 
   const startResendCountdown = useCallback(() => setResendCountdown(30), []);
+
+  const sendOtpEmail = async (userEmail: string, userName: string) => {
+    const { data, error } = await supabase.functions.invoke("send-otp", {
+      body: { email: userEmail, name: userName },
+    });
+    if (error) throw new Error(error.message || "Failed to send OTP");
+    if (data?.error) throw new Error(data.error);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
       if (isSignup) {
-        const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin } });
+        // Sign up with auto-confirm enabled (no Supabase verification email)
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName },
+          },
+        });
         if (error) throw error;
+
+        // Send custom OTP via edge function
+        await sendOtpEmail(email, fullName);
         setStep("otp");
         startResendCountdown();
         toast.success("Verification code sent to your email!");
@@ -84,17 +102,34 @@ export default function Login() {
     if (lockUntil && Date.now() < lockUntil) { toast.error("Too many attempts. Please wait."); return; }
     setVerifying(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({ email, token: otpValue, type: "signup" });
-      if (error) throw error;
-      setStep("success");
-    } catch {
-      const newAttempts = wrongAttempts + 1;
-      setWrongAttempts(newAttempts);
-      setShakeOtp(true);
-      setTimeout(() => setShakeOtp(false), 600);
-      setOtpValue("");
-      if (newAttempts >= 3) { setLockUntil(Date.now() + 60_000); toast.error("Too many wrong attempts. Locked for 1 minute."); }
-      else toast.error(`Invalid OTP. ${3 - newAttempts} attempt(s) remaining.`);
+      const { data, error } = await supabase.functions.invoke("verify-otp", {
+        body: { email, otp_code: otpValue },
+      });
+      if (error) throw new Error(error.message);
+
+      if (data?.verified) {
+        setStep("success");
+        toast.success("Email verified successfully!");
+      } else if (data?.reason === "expired") {
+        toast.error("⏰ Code expired. Please request a new one.");
+        setOtpValue("");
+        setResendCountdown(0); // Allow immediate resend
+      } else {
+        // Invalid OTP
+        const newAttempts = wrongAttempts + 1;
+        setWrongAttempts(newAttempts);
+        setShakeOtp(true);
+        setTimeout(() => setShakeOtp(false), 600);
+        setOtpValue("");
+        if (newAttempts >= 3) {
+          setLockUntil(Date.now() + 60_000);
+          toast.error("Too many wrong attempts. Locked for 1 minute.");
+        } else {
+          toast.error(`❌ Invalid code. ${3 - newAttempts} attempt(s) remaining.`);
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Verification failed");
     } finally {
       setVerifying(false);
     }
@@ -103,12 +138,15 @@ export default function Login() {
   const handleResendOtp = async () => {
     if (resendCountdown > 0) return;
     try {
-      const { error } = await supabase.auth.resend({ type: "signup", email });
-      if (error) throw error;
-      setOtpValue(""); setWrongAttempts(0); setLockUntil(null);
+      await sendOtpEmail(email, fullName);
+      setOtpValue("");
+      setWrongAttempts(0);
+      setLockUntil(null);
       startResendCountdown();
-      toast.success("New verification code sent!");
-    } catch (err: any) { toast.error(err.message || "Failed to resend code"); }
+      toast.success("New code sent to your email ✉️");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend code");
+    }
   };
 
   const handleBackToForm = () => { setStep("form"); setOtpValue(""); setWrongAttempts(0); setLockUntil(null); };
@@ -220,7 +258,7 @@ export default function Login() {
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                       <Pill className="w-6 h-6 text-primary" />
                     </div>
-                    <h2 className="text-lg font-semibold">Verify your email</h2>
+                    <h2 className="text-lg font-semibold">Verify Your Email 📧</h2>
                     <p className="text-sm text-muted-foreground">
                       We sent a 6-digit code to<br />
                       <span className="font-medium text-foreground">{email}</span>
