@@ -85,16 +85,7 @@ export default function Alternatives() {
                       <td className="p-4 text-right font-medium">{opt.cost}</td>
                       <td className={`p-4 text-right font-medium ${opt.best ? "text-success" : "text-muted-foreground"}`}>{opt.savings}</td>
                       <td className="p-4">
-                        <div className="flex items-center justify-center gap-2 flex-wrap">
-                          <a
-                            href={pharmacyUrl(opt.brand, "1mg")}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-lg text-white transition-all duration-200 hover:brightness-90 shadow-sm"
-                            style={{ backgroundColor: "#FF6B35" }}
-                          >
-                            🛒 Order on 1mg
-                          </a>
+                        <div className="flex items-center justify-center">
                           <a
                             href={pharmacyUrl(opt.brand, "pharmeasy")}
                             target="_blank"
