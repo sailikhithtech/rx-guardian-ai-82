@@ -1,14 +1,28 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, Heart, AlertTriangle, Phone, Camera, Shield, X } from "lucide-react";
+import { User, Heart, AlertTriangle, Phone, Camera, Shield, X, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const allConditions = ["Type 2 Diabetes", "Hypertension", "Asthma", "Heart Disease", "Thyroid Disorder", "COPD", "Arthritis", "Chronic Kidney Disease"];
 
 export default function PatientProfile() {
+  const { signOut, isGuest } = useAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState("Alex Johnson");
   const [age, setAge] = useState("34");
   const [gender, setGender] = useState("Male");
@@ -17,13 +31,19 @@ export default function PatientProfile() {
   const [conditions, setConditions] = useState<string[]>(["Type 2 Diabetes", "Hypertension"]);
   const [allergies, setAllergies] = useState<string[]>(["Penicillin", "Sulfonamides"]);
   const [allergyInput, setAllergyInput] = useState("");
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
-  // Saved snapshot for display card
   const [saved, setSaved] = useState({ name, age, gender, blood, emergency });
 
   const handleSave = () => {
     setSaved({ name, age, gender, blood, emergency });
     toast.success("Profile updated successfully!");
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success("Logged out successfully 👋");
+    navigate("/login", { replace: true });
   };
 
   const toggleCondition = (c: string) => {
@@ -41,6 +61,8 @@ export default function PatientProfile() {
   const removeAllergy = (a: string) => {
     setAllergies((prev) => prev.filter((x) => x !== a));
   };
+
+  const logoutLabel = isGuest ? "Exit Guest Mode" : "Log Out";
 
   return (
     <div className="page-container">
@@ -165,6 +187,40 @@ export default function PatientProfile() {
           </div>
         </div>
       </motion.div>
+
+      {/* Logout Button — visible on mobile profile page */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+        <button
+          onClick={() => setShowLogoutDialog(true)}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-colors bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+        >
+          <LogOut className="w-[18px] h-[18px]" />
+          {logoutLabel}
+        </button>
+      </motion.div>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{isGuest ? "Exit Guest Mode?" : "Logout?"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isGuest
+                ? "Are you sure you want to exit guest mode? You'll be redirected to the login page."
+                : "Are you sure you want to logout of RxVision?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isGuest ? "Yes, Exit" : "Yes, Logout"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -7,6 +7,17 @@ import {
   Pill, Moon, Sun, MapPin, LogOut
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const navItems = [
   { title: "Dashboard", path: "/", icon: LayoutDashboard },
@@ -36,9 +47,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
+    toast.success("Logged out successfully 👋");
     navigate("/login", { replace: true });
   };
 
@@ -46,6 +59,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     setDarkMode(!darkMode);
     document.documentElement.classList.toggle("dark");
   };
+
+  const logoutLabel = isGuest ? "Exit Guest Mode" : "Log Out";
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -78,7 +93,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="p-3 border-t border-sidebar-border space-y-0.5">
+        <div className="p-3 border-t border-sidebar-border space-y-1">
           <div className="px-3 py-1.5 text-xs text-muted-foreground truncate">
             {isGuest ? "Guest User" : user?.email}
           </div>
@@ -89,12 +104,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {darkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
             {darkMode ? "Light Mode" : "Dark Mode"}
           </button>
+          <div className="my-1 border-t border-sidebar-border" />
           <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-colors"
+            onClick={() => setShowLogoutDialog(true)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium w-full transition-colors bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
           >
             <LogOut className="w-[18px] h-[18px]" />
-            {isGuest ? "Exit Guest" : "Log Out"}
+            {logoutLabel}
           </button>
         </div>
       </aside>
@@ -148,6 +164,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   );
                 })}
               </nav>
+              <div className="p-3 border-t border-sidebar-border">
+                <div className="my-1 border-t border-sidebar-border mb-2" />
+                <button
+                  onClick={() => { setSidebarOpen(false); setShowLogoutDialog(true); }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium w-full transition-colors bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <LogOut className="w-[18px] h-[18px]" />
+                  {logoutLabel}
+                </button>
+              </div>
             </motion.aside>
           </>
         )}
@@ -206,6 +232,29 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           })}
         </div>
       </nav>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{isGuest ? "Exit Guest Mode?" : "Logout?"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isGuest
+                ? "Are you sure you want to exit guest mode? You'll be redirected to the login page."
+                : "Are you sure you want to logout of RxVision?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isGuest ? "Yes, Exit" : "Yes, Logout"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
