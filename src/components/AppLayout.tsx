@@ -15,6 +15,7 @@ const navItems = [
   { title: "RxBot", path: "/rxbot", icon: Bot },
   { title: "Reminders", path: "/reminders", icon: Bell },
   { title: "Pill ID", path: "/pill-id", icon: Search },
+  { title: "Pharmacies", path: "/pharmacies", icon: MapPin },
   { title: "History", path: "/history", icon: ClipboardList },
   { title: "Analytics", path: "/analytics", icon: BarChart3 },
   { title: "Profile", path: "/profile", icon: User },
