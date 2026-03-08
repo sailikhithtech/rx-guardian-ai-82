@@ -8,12 +8,15 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/contexts/AuthContext";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const } } };
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const { user, isGuest } = useAuth();
+  const userName = user?.user_metadata?.full_name || (isGuest ? "Guest" : "User");
 
   const stats = [
     { label: t("dashboard.totalPrescriptions"), value: "12", icon: ClipboardList, color: "text-primary", bg: "bg-primary/10" },
