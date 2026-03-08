@@ -31,9 +31,16 @@ const mobileNavItems = [
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { signOut, isGuest, user } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/login", { replace: true });
+  };
 
   const toggleDark = () => {
     setDarkMode(!darkMode);
