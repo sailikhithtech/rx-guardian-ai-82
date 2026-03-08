@@ -15,9 +15,11 @@ import {
 const allConditions = ["Type 2 Diabetes", "Hypertension", "Asthma", "Heart Disease", "Thyroid Disorder", "COPD", "Arthritis", "Chronic Kidney Disease"];
 
 export default function PatientProfile() {
-  const { signOut, isGuest } = useAuth();
+  const { signOut, isGuest, user } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState("Alex Johnson");
+  const defaultName = user?.user_metadata?.full_name || (isGuest ? "Guest" : "User");
+  const defaultEmail = user?.email || "guest@rxvision.app";
+  const [name, setName] = useState(defaultName);
   const [age, setAge] = useState("34");
   const [gender, setGender] = useState("Male");
   const [blood, setBlood] = useState("O+");
