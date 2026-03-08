@@ -3,6 +3,7 @@ import { ClipboardList, ChevronDown, Download, AlertTriangle, CheckCircle2, Cloc
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
 
 const prescriptions = [
   {
