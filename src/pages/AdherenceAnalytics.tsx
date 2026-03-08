@@ -80,6 +80,8 @@ const exportReport = (userName: string) => {
 };
 
 export default function AdherenceAnalytics() {
+  const { user, isGuest } = useAuth();
+  const userName = user?.user_metadata?.full_name || (isGuest ? "Guest" : "User");
   return (
     <div className="page-container">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
