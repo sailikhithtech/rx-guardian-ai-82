@@ -355,7 +355,7 @@ export default function NearbyPharmacies() {
                   className="inline-flex items-center gap-1.5 text-[10px] font-medium px-3 py-1 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
                 >
                   OSM Directions
-                </a>
+                </button>
               </div>
             </div>
           ))}
