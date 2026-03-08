@@ -407,7 +407,7 @@ export default function Login() {
               {step === "success" && (
                 <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="text-center space-y-4 py-8">
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}>
-                    <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
+                    <CheckCircle2 className="w-16 h-16 text-primary mx-auto" />
                   </motion.div>
                   <h2 className="text-lg font-semibold">Email verified successfully!</h2>
                   <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
