@@ -70,14 +70,13 @@ export default function Login() {
 
     // 2. Send email client-side via EmailJS
     await emailjs.send(
-      EMAILJS_SERVICE_ID,
-      EMAILJS_TEMPLATE_ID,
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
       {
         name: userName || "User",
+        passcode: data.otp_code,
         email: userEmail,
-        otp_code: data.otp_code,
-      },
-      EMAILJS_PUBLIC_KEY
+      }
     );
   };
 
