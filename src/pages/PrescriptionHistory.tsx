@@ -169,7 +169,7 @@ export default function PrescriptionHistory() {
                           </div>
                         ))}
                       </div>
-                      <Button variant="outline" size="sm" className="gap-2 rounded-lg" onClick={() => toast.success("PDF downloaded!")}>
+                      <Button variant="outline" size="sm" className="gap-2 rounded-lg" onClick={() => downloadPdf(rx)}>
                         <Download className="w-4 h-4" /> Download PDF
                       </Button>
                     </motion.div>
