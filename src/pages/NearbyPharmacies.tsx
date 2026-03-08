@@ -57,6 +57,7 @@ export default function NearbyPharmacies() {
   const [searching, setSearching] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const markerMapRef = useRef<Map<number, L.Marker>>(new Map());
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
