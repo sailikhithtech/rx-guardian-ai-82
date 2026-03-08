@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import PrescriptionAnalyzer from "@/pages/PrescriptionAnalyzer";
@@ -20,8 +22,10 @@ import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const LayoutRoute = ({ children }: { children: React.ReactNode }) => (
-  <AppLayout>{children}</AppLayout>
+const ProtectedLayout = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <AppLayout>{children}</AppLayout>
+  </ProtectedRoute>
 );
 
 const App = () => (
@@ -30,21 +34,23 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
-          <Route path="/analyze" element={<LayoutRoute><PrescriptionAnalyzer /></LayoutRoute>} />
-          <Route path="/interactions" element={<LayoutRoute><DrugInteractions /></LayoutRoute>} />
-          <Route path="/alternatives" element={<LayoutRoute><Alternatives /></LayoutRoute>} />
-          <Route path="/rxbot" element={<LayoutRoute><RxBot /></LayoutRoute>} />
-          <Route path="/reminders" element={<LayoutRoute><Reminders /></LayoutRoute>} />
-          <Route path="/pill-id" element={<LayoutRoute><PillIdentifier /></LayoutRoute>} />
-          <Route path="/pharmacies" element={<LayoutRoute><NearbyPharmacies /></LayoutRoute>} />
-          <Route path="/history" element={<LayoutRoute><PrescriptionHistory /></LayoutRoute>} />
-          <Route path="/profile" element={<LayoutRoute><PatientProfile /></LayoutRoute>} />
-          <Route path="/analytics" element={<LayoutRoute><AdherenceAnalytics /></LayoutRoute>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
+            <Route path="/analyze" element={<ProtectedLayout><PrescriptionAnalyzer /></ProtectedLayout>} />
+            <Route path="/interactions" element={<ProtectedLayout><DrugInteractions /></ProtectedLayout>} />
+            <Route path="/alternatives" element={<ProtectedLayout><Alternatives /></ProtectedLayout>} />
+            <Route path="/rxbot" element={<ProtectedLayout><RxBot /></ProtectedLayout>} />
+            <Route path="/reminders" element={<ProtectedLayout><Reminders /></ProtectedLayout>} />
+            <Route path="/pill-id" element={<ProtectedLayout><PillIdentifier /></ProtectedLayout>} />
+            <Route path="/pharmacies" element={<ProtectedLayout><NearbyPharmacies /></ProtectedLayout>} />
+            <Route path="/history" element={<ProtectedLayout><PrescriptionHistory /></ProtectedLayout>} />
+            <Route path="/profile" element={<ProtectedLayout><PatientProfile /></ProtectedLayout>} />
+            <Route path="/analytics" element={<ProtectedLayout><AdherenceAnalytics /></ProtectedLayout>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
