@@ -204,6 +204,9 @@ export default function NearbyPharmacies() {
           })
         : pharmacyIcon;
 
+      const gUrl = getDirectionsUrl(p.lat, p.lng, userPos?.[0], userPos?.[1]);
+      const osmUrl = getOsmDirectionsUrl(p.lat, p.lng, userPos?.[0], userPos?.[1]);
+
       const popupContent = `
         <div style="min-width:220px;font-family:system-ui,sans-serif;">
           <div style="font-weight:700;font-size:15px;color:#1d4ed8;margin-bottom:6px;">
@@ -213,13 +216,18 @@ export default function NearbyPharmacies() {
           <div style="font-size:12px;color:#64748b;margin-bottom:4px;">📞 ${p.phone || "Not available"}</div>
           <div style="font-size:12px;color:#64748b;margin-bottom:4px;">⏰ ${p.openingHours || "Hours not listed"}</div>
           <div style="font-size:12px;color:#64748b;margin-bottom:8px;">📏 ${formatDist(p.distance)} away</div>
-          <div style="display:flex;gap:6px;">
-            <a href="${getDirectionsUrl(p.lat, p.lng)}" target="_blank" rel="noopener noreferrer"
-               style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:6px 10px;background:#2563eb;color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;">
-              🗺️ Directions
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <a href="${gUrl}" target="_blank" rel="noopener noreferrer"
+               style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:8px 12px;background:#2563eb;color:white;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;transition:background 0.15s;"
+               onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+              🗺️ Get Directions
+            </a>
+            <a href="${osmUrl}" target="_blank" rel="noopener noreferrer"
+               style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:5px 10px;background:transparent;color:#2563eb;border:1px solid #2563eb;border-radius:8px;font-size:11px;font-weight:500;text-decoration:none;cursor:pointer;">
+              OpenStreetMap Directions
             </a>
             <button onclick="document.dispatchEvent(new CustomEvent('pharmacy-detail',{detail:${p.id}}))"
-               style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:6px 10px;background:#16a34a;color:white;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">
+               style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:6px 10px;background:#16a34a;color:white;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">
               📋 Details
             </button>
           </div>
