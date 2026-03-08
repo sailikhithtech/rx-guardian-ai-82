@@ -31,7 +31,7 @@ const perMedicine = [
   { name: "Omeprazole", adherence: 85, streak: 5 },
 ];
 
-const exportReport = () => {
+const exportReport = (userName: string) => {
   try {
     const doc = new jsPDF();
     let y = 20;
