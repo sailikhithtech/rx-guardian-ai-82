@@ -53,7 +53,7 @@ export default function PatientProfile() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">{saved.name}</h1>
-            <p className="text-white/60 text-sm">alex.johnson@email.com</p>
+            <p className="text-white/60 text-sm">{defaultEmail}</p>
             <div className="flex gap-4 mt-2 text-sm text-white/80">
               <span>Age: <strong>{saved.age}</strong></span>
               <span>Blood: <strong>{saved.blood}</strong></span>
