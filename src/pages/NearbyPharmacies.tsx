@@ -1,133 +1,155 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Navigation, Clock, Star, Phone, ExternalLink, Search, LocateFixed, Filter } from "lucide-react";
+import { MapPin, Navigation, Phone, ExternalLink, Search, LocateFixed, Loader2 } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 interface Pharmacy {
   id: number;
   name: string;
   address: string;
-  phone: string;
   lat: number;
   lng: number;
-  distance: string;
-  rating: number;
-  open: boolean;
-  is24hr: boolean;
+  distance: number;
 }
 
 const DEFAULT_CENTER: [number, number] = [17.385, 78.4867];
-
-const pharmacies: Pharmacy[] = [
-  { id: 1, name: "MedPlus Pharmacy", address: "Road No. 12, Banjara Hills, Hyderabad", phone: "+91 40 2335 5678", lat: 17.4156, lng: 78.4347, distance: "0.8 km", rating: 4.5, open: true, is24hr: false },
-  { id: 2, name: "Apollo Pharmacy", address: "Jubilee Hills Check Post, Hyderabad", phone: "+91 40 2360 1234", lat: 17.4310, lng: 78.4070, distance: "1.2 km", rating: 4.7, open: true, is24hr: true },
-  { id: 3, name: "Wellness Forever", address: "Madhapur Main Road, Hyderabad", phone: "+91 40 2311 9876", lat: 17.4435, lng: 78.3772, distance: "2.1 km", rating: 4.2, open: false, is24hr: false },
-  { id: 4, name: "Netmeds Store", address: "Himayatnagar, Hyderabad", phone: "+91 40 2760 4321", lat: 17.3950, lng: 78.4983, distance: "2.5 km", rating: 4.0, open: true, is24hr: false },
-  { id: 5, name: "Ramesh Medicals", address: "Ameerpet, Hyderabad", phone: "+91 40 2373 8765", lat: 17.4375, lng: 78.4483, distance: "1.6 km", rating: 4.3, open: true, is24hr: false },
-  { id: 6, name: "Sai Krishna Pharmacy", address: "Kukatpally Housing Board, Hyderabad", phone: "+91 40 2305 6543", lat: 17.4947, lng: 78.3996, distance: "3.8 km", rating: 4.1, open: true, is24hr: true },
-  { id: 7, name: "Care Pharmacy 24x7", address: "Secunderabad Railway Station Road", phone: "+91 40 2770 2222", lat: 17.4344, lng: 78.5013, distance: "3.2 km", rating: 4.6, open: true, is24hr: true },
-  { id: 8, name: "Hetero Pharmacy", address: "HITEC City, Madhapur, Hyderabad", phone: "+91 40 2312 7890", lat: 17.4486, lng: 78.3814, distance: "2.9 km", rating: 3.9, open: false, is24hr: false },
-];
 
 function getDirectionsUrl(lat: number, lng: number) {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
-type FilterType = "all" | "open" | "24hr" | "rated";
+function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+const userIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:18px;height:18px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.6)"></div>`,
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+});
+
+const pharmacyIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:14px;height:14px;background:#ef4444;border:2px solid white;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,0.3)"></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+});
 
 export default function NearbyPharmacies() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [center, setCenter] = useState<[number, number]>(DEFAULT_CENTER);
-  const [filter, setFilter] = useState<FilterType>("all");
+  const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
+  const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const userMarkerRef = useRef<L.Marker | null>(null);
 
-  const filtered = pharmacies.filter((p) => {
-    if (filter === "open") return p.open;
-    if (filter === "24hr") return p.is24hr;
-    if (filter === "rated") return p.rating >= 4.5;
-    return true;
-  }).filter((p) =>
-    searchQuery === "" ||
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const center = userPos || DEFAULT_CENTER;
 
-  // Initialize map
-  useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
-
-    const map = L.map(mapContainerRef.current).setView(center, 13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-    }).addTo(map);
-
-    mapRef.current = map;
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
+  const fetchPharmacies = useCallback(async (lat: number, lng: number) => {
+    setLoading(true);
+    try {
+      const radius = 3000;
+      const query = `[out:json][timeout:10];node["amenity"="pharmacy"](around:${radius},${lat},${lng});out body;`;
+      const res = await fetch("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        body: `data=${encodeURIComponent(query)}`,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+      const data = await res.json();
+      const results: Pharmacy[] = (data.elements || []).map((el: any, i: number) => ({
+        id: el.id || i,
+        name: el.tags?.name || "Pharmacy",
+        address: el.tags?.["addr:street"] ? `${el.tags["addr:housenumber"] || ""} ${el.tags["addr:street"]}`.trim() : (el.tags?.["addr:full"] || "Address not available"),
+        lat: el.lat,
+        lng: el.lon,
+        distance: haversine(lat, lng, el.lat, el.lon),
+      }));
+      results.sort((a, b) => a.distance - b.distance);
+      setPharmacies(results);
+    } catch {
+      toast.error("Could not fetch nearby pharmacies");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Update center
-  useEffect(() => {
-    mapRef.current?.setView(center, 13);
-  }, [center]);
-
-  // Update markers
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    // Clear old markers
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-
-    filtered.forEach((p) => {
-      const marker = L.marker([p.lat, p.lng])
-        .addTo(map)
-        .bindPopup(
-          `<div style="min-width:180px">
-            <p style="font-weight:600;margin:0 0 4px">${p.name}</p>
-            <p style="font-size:12px;color:#666;margin:0 0 4px">${p.address}</p>
-            <p style="font-size:12px;margin:0 0 6px">📞 ${p.phone}</p>
-            <a href="${getDirectionsUrl(p.lat, p.lng)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:#4F8EF7;font-weight:500;text-decoration:none">📍 Get Directions</a>
-          </div>`
-        )
-        .on("click", () => setSelectedId(p.id));
-
-      markersRef.current.push(marker);
-    });
-  }, [filtered]);
-
-  const useMyLocation = useCallback(() => {
+  const detectLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
+      toast.error("Geolocation not supported");
       return;
     }
     toast.loading("Getting your location...", { id: "geo" });
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCenter([pos.coords.latitude, pos.coords.longitude]);
+        const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        setUserPos(loc);
         toast.success("Location updated!", { id: "geo" });
+        fetchPharmacies(loc[0], loc[1]);
       },
-      () => toast.error("Unable to get your location", { id: "geo" })
+      () => {
+        toast.error("Location denied, using default", { id: "geo" });
+        setUserPos(null);
+        fetchPharmacies(DEFAULT_CENTER[0], DEFAULT_CENTER[1]);
+      }
     );
+  }, [fetchPharmacies]);
+
+  // Init: detect location
+  useEffect(() => { detectLocation(); }, [detectLocation]);
+
+  // Init map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+    const map = L.map(mapContainerRef.current).setView(center, 14);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    }).addTo(map);
+    mapRef.current = map;
+    return () => { map.remove(); mapRef.current = null; };
   }, []);
 
-  const filters: { key: FilterType; label: string }[] = [
-    { key: "all", label: "All" },
-    { key: "open", label: "Open Now" },
-    { key: "24hr", label: "24 Hours" },
-    { key: "rated", label: "Highest Rated" },
-  ];
+  // Update map center + user marker
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.setView(center, 14);
+    if (userMarkerRef.current) userMarkerRef.current.remove();
+    userMarkerRef.current = L.marker(center, { icon: userIcon })
+      .addTo(map)
+      .bindPopup("<b>📍 You are here</b>");
+  }, [center]);
+
+  // Update pharmacy markers
+  const filtered = pharmacies.filter(
+    (p) => !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.address.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+    filtered.forEach((p) => {
+      const marker = L.marker([p.lat, p.lng], { icon: pharmacyIcon })
+        .addTo(map)
+        .bindPopup(`<b>${p.name}</b><br/><span style="font-size:12px">${p.address}</span><br/><a href="${getDirectionsUrl(p.lat, p.lng)}" target="_blank" style="font-size:12px;color:#3b82f6">Get Directions →</a>`)
+        .on("click", () => setSelectedId(p.id));
+      markersRef.current.push(marker);
+    });
+  }, [filtered]);
+
+  const formatDist = (km: number) => km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 
   return (
     <div className="page-container">
@@ -135,89 +157,44 @@ export default function NearbyPharmacies() {
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <MapPin className="w-7 h-7 text-primary" /> Nearby Pharmacies
         </h1>
-        <p className="text-muted-foreground mt-1">Find pharmacies near you and get directions</p>
+        <p className="text-muted-foreground mt-1">Real pharmacies near you via OpenStreetMap</p>
       </div>
 
-      {/* Search + Location + Filters */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name or area..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 rounded-xl"
-            />
-          </div>
-          <Button variant="outline" className="rounded-xl gap-2 shrink-0" onClick={useMyLocation}>
-            <LocateFixed className="w-4 h-4" /> My Location
-          </Button>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search pharmacies..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 rounded-xl" />
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          {filters.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
-                filter === f.key
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-muted/50 text-muted-foreground border-border hover:border-primary/50"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <Button variant="outline" className="rounded-xl gap-2 shrink-0" onClick={detectLocation}>
+          <LocateFixed className="w-4 h-4" /> Refresh Location
+        </Button>
       </div>
 
-      {/* Map + List */}
+      {loading && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" /> Finding nearby pharmacies...
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-5 gap-6">
-        {/* Map */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-3 bg-card rounded-2xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
           <div ref={mapContainerRef} style={{ height: "100%", minHeight: 420, zIndex: 0 }} />
         </motion.div>
 
-        {/* Pharmacy List */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="lg:col-span-2 space-y-3 max-h-[520px] overflow-y-auto pr-1">
-          {filtered.length === 0 && (
-            <div className="text-center py-12 text-sm text-muted-foreground">No pharmacies match your filter.</div>
+          {!loading && filtered.length === 0 && (
+            <div className="text-center py-12 text-sm text-muted-foreground">No pharmacies found nearby.</div>
           )}
           {filtered.map((p) => (
             <div
               key={p.id}
-              onClick={() => {
-                setSelectedId(p.id);
-                mapRef.current?.setView([p.lat, p.lng], 15);
-              }}
-              className={`bg-card rounded-xl border p-4 space-y-2 cursor-pointer transition-all hover:shadow-md ${
-                selectedId === p.id ? "border-primary ring-1 ring-primary/20" : "border-border"
-              }`}
+              onClick={() => { setSelectedId(p.id); mapRef.current?.setView([p.lat, p.lng], 16); }}
+              className={`bg-card rounded-xl border p-4 space-y-2 cursor-pointer transition-all hover:shadow-md ${selectedId === p.id ? "border-primary ring-1 ring-primary/20" : "border-border"}`}
             >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="font-semibold text-sm">{p.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">{p.address}</p>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={`shrink-0 text-[10px] rounded-full ${
-                    p.open
-                      ? "border-success/30 text-success bg-success/5"
-                      : "border-destructive/30 text-destructive bg-destructive/5"
-                  }`}
-                >
-                  {p.open ? "Open" : "Closed"}
-                </Badge>
-              </div>
+              <h3 className="font-semibold text-sm">{p.name}</h3>
+              <p className="text-xs text-muted-foreground">{p.address}</p>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {p.distance}</span>
-                <span className="flex items-center gap-1"><Star className="w-3 h-3 text-warning fill-warning" /> {p.rating}</span>
-                {p.is24hr && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24hrs</span>}
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="flex items-center gap-1 text-muted-foreground"><Phone className="w-3 h-3" /> {p.phone}</span>
+                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {formatDist(p.distance)}</span>
               </div>
               <a
                 href={getDirectionsUrl(p.lat, p.lng)}
