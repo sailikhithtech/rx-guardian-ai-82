@@ -15,6 +15,7 @@ import PrescriptionHistory from "@/pages/PrescriptionHistory";
 import PatientProfile from "@/pages/PatientProfile";
 import AdherenceAnalytics from "@/pages/AdherenceAnalytics";
 import Login from "@/pages/Login";
+import NearbyPharmacies from "@/pages/NearbyPharmacies";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
