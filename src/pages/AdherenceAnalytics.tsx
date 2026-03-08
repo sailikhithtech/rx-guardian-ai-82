@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
 
 const weeklyData = [
   { day: "Mon", taken: 4, missed: 0 },
