@@ -41,7 +41,7 @@ const exportReport = () => {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(`Generated: ${new Date().toLocaleDateString("en-IN", { dateStyle: "long" })}`, 20, y); y += 5;
-    doc.text("Patient: Alex Johnson", 20, y); y += 10;
+    doc.text(`Patient: ${userName}`, 20, y); y += 10;
     doc.setDrawColor(200); doc.line(20, y, 190, y); y += 10;
 
     doc.setFontSize(13); doc.setFont("helvetica", "bold");

@@ -79,7 +79,7 @@ export default function Dashboard() {
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)" }} />
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 relative z-10">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white">{t("dashboard.greeting", { name: "Alex" })} 👋</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-white">{t("dashboard.greeting", { name: userName })} 👋</h1>
             <p className="text-white/70 mt-2 text-sm">
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </p>
