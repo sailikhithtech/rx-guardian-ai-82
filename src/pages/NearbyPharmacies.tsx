@@ -323,15 +323,26 @@ export default function NearbyPharmacies() {
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {formatDist(p.distance)}</span>
               </div>
-              <a
-                href={getDirectionsUrl(p.lat, p.lng)}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-              >
-                <Navigation className="w-3 h-3" /> Get Directions <ExternalLink className="w-3 h-3" />
-              </a>
+              <div className="flex flex-col gap-1.5">
+                <a
+                  href={getDirectionsUrl(p.lat, p.lng, userPos?.[0], userPos?.[1])}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                >
+                  <Navigation className="w-3 h-3" /> 🗺️ Get Directions <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href={getOsmDirectionsUrl(p.lat, p.lng, userPos?.[0], userPos?.[1])}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-medium px-3 py-1 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
+                >
+                  OSM Directions
+                </a>
+              </div>
             </div>
           ))}
         </motion.div>
