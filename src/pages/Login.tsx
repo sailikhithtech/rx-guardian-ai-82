@@ -1,18 +1,63 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Pill, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Pill, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
   const [isSignup, setIsSignup] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { session, isGuest, setGuest } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const from = (location.state as any)?.from || "/";
+
+  useEffect(() => {
+    if (session || isGuest) {
+      navigate(from, { replace: true });
+    }
+  }, [session, isGuest, navigate, from]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(isSignup ? "Account created!" : "Welcome back!");
+    setSubmitting(true);
+
+    try {
+      if (isSignup) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName },
+            emailRedirectTo: window.location.origin,
+          },
+        });
+        if (error) throw error;
+        toast.success("Check your email to confirm your account!");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        toast.success("Welcome back!");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Authentication failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGuest = () => {
+    setGuest();
+    navigate(from, { replace: true });
   };
 
   return (
@@ -37,25 +82,19 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignup && <Input placeholder="Full Name" className="rounded-xl" required />}
-            <Input type="email" placeholder="Email address" className="rounded-xl" required />
+            {isSignup && (
+              <Input placeholder="Full Name" className="rounded-xl" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            )}
+            <Input type="email" placeholder="Email address" className="rounded-xl" required value={email} onChange={(e) => setEmail(e.target.value)} />
             <div className="relative">
-              <Input type={showPassword ? "text" : "password"} placeholder="Password" className="rounded-xl pr-10" required />
+              <Input type={showPassword ? "text" : "password"} placeholder="Password" className="rounded-xl pr-10" required value={password} onChange={(e) => setPassword(e.target.value)} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            {isSignup && (
-              <div className="grid grid-cols-2 gap-3">
-                <Input type="number" placeholder="Age" className="rounded-xl" />
-                <select className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
-                  <option value="" disabled selected>Gender</option>
-                  <option>Male</option><option>Female</option><option>Other</option>
-                </select>
-              </div>
-            )}
-            <Button type="submit" className="w-full rounded-xl gap-2">
-              {isSignup ? "Create Account" : "Log In"} <ArrowRight className="w-4 h-4" />
+            <Button type="submit" className="w-full rounded-xl gap-2" disabled={submitting}>
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {isSignup ? "Create Account" : "Log In"} {!submitting && <ArrowRight className="w-4 h-4" />}
             </Button>
           </form>
 
@@ -64,11 +103,9 @@ export default function Login() {
             <div className="relative flex justify-center"><span className="bg-card px-3 text-xs text-muted-foreground">or</span></div>
           </div>
 
-          <Link to="/">
-            <Button variant="outline" className="w-full rounded-xl">
-              Continue as Guest
-            </Button>
-          </Link>
+          <Button variant="outline" className="w-full rounded-xl" onClick={handleGuest}>
+            Continue as Guest
+          </Button>
         </div>
       </motion.div>
     </div>
