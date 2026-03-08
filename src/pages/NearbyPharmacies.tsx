@@ -13,6 +13,9 @@ interface Pharmacy {
   lat: number;
   lng: number;
   distance: number;
+  phone: string | null;
+  openingHours: string | null;
+  type: "pharmacy" | "hospital";
 }
 
 const DEFAULT_CENTER: [number, number] = [17.385, 78.4867];
