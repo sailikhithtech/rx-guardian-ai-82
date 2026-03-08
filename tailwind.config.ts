@@ -12,7 +12,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -65,12 +65,21 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+          muted: "hsl(var(--sidebar-muted))",
         },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "1rem",
+        "2xl": "1.25rem",
+      },
+      boxShadow: {
+        "card": "0 2px 8px rgba(0,0,0,0.06)",
+        "card-hover": "0 8px 24px rgba(13,148,136,0.12)",
+        "btn-primary": "0 4px 12px rgba(13,148,136,0.4)",
+        "btn-danger": "0 4px 12px rgba(239,68,68,0.4)",
       },
       keyframes: {
         "accordion-down": {
@@ -86,7 +95,15 @@ export default {
           "50%": { opacity: "0.7" },
         },
         "slide-up": {
-          from: { opacity: "0", transform: "translateY(10px)" },
+          from: { opacity: "0", transform: "translateY(16px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "count-up": {
+          from: { opacity: "0", transform: "translateY(8px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
       },
@@ -94,7 +111,9 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
-        "slide-up": "slide-up 0.3s ease-out",
+        "slide-up": "slide-up 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+        "fade-in": "fade-in 0.3s ease-out",
+        "count-up": "count-up 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
       },
     },
   },

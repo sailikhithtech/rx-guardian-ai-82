@@ -3,13 +3,14 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   ClipboardList, Pill, Bell, AlertTriangle, Upload,
-  Clock, CheckCircle2, AlertCircle, ChevronRight
+  Clock, CheckCircle2, AlertCircle, ChevronRight,
+  ScanLine, Bot, Search, MapPin, ArrowLeftRight, BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
-const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
+const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } } };
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -35,10 +36,19 @@ export default function Dashboard() {
     { id: 3, date: "Feb 15, 2026", doctor: "Dr. Priya Sharma", medicines: 4, status: "pending" },
   ];
 
+  const quickActions = [
+    { label: t("dashboard.uploadPrescription"), path: "/analyze", icon: ScanLine, color: "bg-primary/10 text-primary" },
+    { label: t("nav.rxbot"), path: "/rxbot", icon: Bot, color: "bg-success/10 text-success" },
+    { label: t("nav.pillId"), path: "/pill-id", icon: Search, color: "bg-warning/10 text-warning" },
+    { label: t("nav.pharmacies"), path: "/pharmacies", icon: MapPin, color: "bg-destructive/10 text-destructive" },
+    { label: t("nav.alternatives"), path: "/alternatives", icon: ArrowLeftRight, color: "bg-primary/10 text-primary" },
+    { label: t("nav.analytics"), path: "/analytics", icon: BarChart3, color: "bg-success/10 text-success" },
+  ];
+
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      validated: "bg-success/10 text-success",
-      warning: "bg-warning/10 text-warning",
+      validated: "bg-[hsl(152_76%_96%)] text-[hsl(152_55%_25%)]",
+      warning: "bg-[hsl(48_96%_89%)] text-[hsl(32_95%_44%)]",
       pending: "bg-primary/10 text-primary",
     };
     const labels: Record<string, string> = {
@@ -47,7 +57,7 @@ export default function Dashboard() {
       pending: t("dashboard.pending"),
     };
     return (
-      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || ""}`}>
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${styles[status] || ""}`}>
         {labels[status] || status}
       </span>
     );
@@ -55,20 +65,24 @@ export default function Dashboard() {
 
   return (
     <div className="page-container">
+      {/* Hero Banner */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10 p-6 md:p-8"
+        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+        className="rounded-2xl p-8 md:p-10 text-white relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, hsl(210 52% 24%) 0%, hsl(174 83% 30%) 100%)" }}
       >
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)" }} />
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 relative z-10">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">{t("dashboard.greeting", { name: "Alex" })}</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-white">{t("dashboard.greeting", { name: "Alex" })} 👋</h1>
+            <p className="text-white/70 mt-2 text-sm">
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </p>
           </div>
           <Link to="/analyze">
-            <Button size="lg" className="gap-2 rounded-xl shadow-md shadow-primary/20 px-6">
+            <Button size="lg" className="gap-2 rounded-xl bg-white text-secondary hover:bg-white/90 shadow-lg px-6 font-semibold">
               <Upload className="w-4 h-4" />
               {t("dashboard.uploadPrescription")}
             </Button>
@@ -76,20 +90,39 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      {/* Stats */}
+      <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s) => (
           <motion.div key={s.label} variants={item} className="stat-card">
-            <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
+            <div className={`w-11 h-11 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
               <s.icon className={`w-5 h-5 ${s.color}`} />
             </div>
-            <p className="text-2xl font-bold">{s.value}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
+            <p className="text-2xl font-bold animate-count-up">{s.value}</p>
+            <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
           </motion.div>
         ))}
       </motion.div>
 
+      {/* Quick Actions */}
+      <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-3 md:grid-cols-6 gap-3">
+        {quickActions.map((action) => (
+          <motion.div key={action.path} variants={item}>
+            <Link
+              to={action.path}
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 text-center"
+            >
+              <div className={`w-11 h-11 rounded-xl ${action.color} flex items-center justify-center`}>
+                <action.icon className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">{action.label}</span>
+            </Link>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Schedule & Recent */}
       <div className="grid lg:grid-cols-5 gap-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-3 bg-card rounded-2xl border border-border p-5 md:p-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.35 }} className="lg:col-span-3 bg-card rounded-2xl border border-border p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="section-title flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
@@ -97,35 +130,40 @@ export default function Dashboard() {
             </h2>
             <Link to="/reminders" className="text-sm text-primary font-medium hover:underline">{t("common.viewAll")}</Link>
           </div>
-          <div className="space-y-3">
-            {todaySchedule.map((med, i) => (
-              <div key={i} className={`flex items-center gap-4 p-3 rounded-xl transition-colors ${med.status === "taken" ? "bg-success/5" : "bg-muted/50"}`}>
-                <div className="text-sm font-medium text-muted-foreground w-20 shrink-0">{med.time}</div>
-                <div className="h-8 w-px bg-border" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{med.medicine}</p>
-                  <p className="text-xs text-muted-foreground">{med.form}</p>
+
+          {/* Timeline with teal connector */}
+          <div className="relative">
+            <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-primary/20 rounded-full" />
+            <div className="space-y-1">
+              {todaySchedule.map((med, i) => (
+                <div key={i} className="flex items-center gap-4 p-3 rounded-xl transition-colors relative">
+                  <div className={`relative z-10 w-3 h-3 rounded-full border-2 ${med.status === "taken" ? "bg-success border-success" : "bg-card border-primary/40"}`} />
+                  <div className="text-sm font-medium text-muted-foreground w-20 shrink-0">{med.time}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{med.medicine}</p>
+                    <p className="text-xs text-muted-foreground">{med.form}</p>
+                  </div>
+                  {med.status === "taken" ? (
+                    <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-muted-foreground/30 shrink-0" />
+                  )}
                 </div>
-                {med.status === "taken" ? (
-                  <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-muted-foreground/40 shrink-0" />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-2 bg-card rounded-2xl border border-border p-5 md:p-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.35 }} className="lg:col-span-2 bg-card rounded-2xl border border-border p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="section-title">{t("dashboard.recentRx")}</h2>
             <Link to="/history" className="text-sm text-primary font-medium hover:underline">{t("nav.history")}</Link>
           </div>
           <div className="space-y-3">
             {recentPrescriptions.map((rx) => (
-              <Link key={rx.id} to="/history" className="block p-3 rounded-xl hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">{rx.doctor}</span>
+              <Link key={rx.id} to="/history" className="block p-4 rounded-xl hover:bg-muted/50 transition-all duration-200 hover:-translate-y-px">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-semibold">{rx.doctor}</span>
                   {statusBadge(rx.status)}
                 </div>
                 <div className="flex items-center justify-between">
@@ -138,7 +176,8 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-card rounded-2xl border border-border p-5 md:p-6">
+      {/* Adherence */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.35 }} className="bg-card rounded-2xl border border-border p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="section-title">{t("dashboard.weeklyAdherence")}</h2>
           <Link to="/analytics" className="text-sm text-primary font-medium hover:underline">{t("common.details")}</Link>
@@ -151,7 +190,7 @@ export default function Dashboard() {
           ].map((med) => (
             <div key={med.name} className="flex items-center gap-4">
               <span className="text-sm font-medium w-28 truncate">{med.name}</span>
-              <Progress value={med.adherence} className="flex-1 h-2" />
+              <Progress value={med.adherence} className="flex-1 h-2.5" />
               <span className={`text-sm font-semibold w-12 text-right ${med.adherence >= 90 ? "text-success" : med.adherence >= 70 ? "text-warning" : "text-destructive"}`}>
                 {med.adherence}%
               </span>

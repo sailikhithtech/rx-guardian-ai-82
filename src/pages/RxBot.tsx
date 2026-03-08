@@ -13,7 +13,7 @@ interface Message {
 
 export default function RxBot() {
   const { t, i18n } = useTranslation();
-  
+
   const quickQuestions = [
     t("rxbot.q1"), t("rxbot.q2"), t("rxbot.q3"), t("rxbot.q4"),
     t("rxbot.q5"), t("rxbot.q6"), t("rxbot.q7"), t("rxbot.q8"),
@@ -30,7 +30,6 @@ export default function RxBot() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isStreaming]);
 
-  // Reset welcome message on language change
   useEffect(() => {
     setMessages([{ role: "assistant", content: t("rxbot.welcomeMessage") }]);
   }, [i18n.language]);
@@ -50,7 +49,6 @@ export default function RxBot() {
         .filter((_, i) => i > 0 || updatedMessages[0].role === "user")
         .map((m) => ({ role: m.role, content: m.content }));
 
-      // Add language context
       const currentLang = i18n.language;
       apiMessages.unshift({
         role: "user" as const,
@@ -91,30 +89,20 @@ export default function RxBot() {
         while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
           let line = buffer.slice(0, newlineIndex);
           buffer = buffer.slice(newlineIndex + 1);
-
           if (line.endsWith("\r")) line = line.slice(0, -1);
           if (line.startsWith(":") || line.trim() === "") continue;
           if (!line.startsWith("data: ")) continue;
-
           const jsonStr = line.slice(6).trim();
           if (jsonStr === "[DONE]") break;
-
           try {
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
               assistantContent += content;
               const captured = assistantContent;
-              setMessages((prev) =>
-                prev.map((m, i) =>
-                  i === prev.length - 1 ? { ...m, content: captured } : m
-                )
-              );
+              setMessages((prev) => prev.map((m, i) => i === prev.length - 1 ? { ...m, content: captured } : m));
             }
-          } catch {
-            buffer = line + "\n" + buffer;
-            break;
-          }
+          } catch { buffer = line + "\n" + buffer; break; }
         }
       }
 
@@ -131,11 +119,7 @@ export default function RxBot() {
             if (content) {
               assistantContent += content;
               const captured = assistantContent;
-              setMessages((prev) =>
-                prev.map((m, i) =>
-                  i === prev.length - 1 ? { ...m, content: captured } : m
-                )
-              );
+              setMessages((prev) => prev.map((m, i) => i === prev.length - 1 ? { ...m, content: captured } : m));
             }
           } catch { /* ignore */ }
         }
@@ -143,9 +127,7 @@ export default function RxBot() {
     } catch (e: any) {
       console.error("RxBot error:", e);
       toast.error(e.message || "Failed to get response");
-      if (!assistantContent) {
-        setMessages((prev) => prev.filter((_, i) => i !== prev.length - 1));
-      }
+      if (!assistantContent) setMessages((prev) => prev.filter((_, i) => i !== prev.length - 1));
     } finally {
       setIsStreaming(false);
     }
@@ -153,6 +135,7 @@ export default function RxBot() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] lg:h-screen">
+      {/* Header */}
       <div className="border-b border-border bg-card px-4 md:px-6 py-4 shrink-0">
         <div className="flex items-center gap-3 max-w-3xl mx-auto">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -169,6 +152,7 @@ export default function RxBot() {
         </div>
       </div>
 
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6">
         <div className="max-w-3xl mx-auto space-y-4">
           {messages.map((msg, i) => (
@@ -176,17 +160,18 @@ export default function RxBot() {
               key={i}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
               className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}
             >
               {msg.role === "assistant" && (
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-1">
                   <Bot className="w-4 h-4 text-primary" />
                 </div>
               )}
               <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-br-md"
-                  : "bg-card border border-border rounded-bl-md"
+                  ? "bg-primary text-primary-foreground rounded-br-md shadow-md shadow-primary/20"
+                  : "bg-card border border-border rounded-bl-md shadow-card"
               }`}>
                 {msg.content}
                 {msg.role === "assistant" && isStreaming && i === messages.length - 1 && (
@@ -194,21 +179,21 @@ export default function RxBot() {
                 )}
               </div>
               {msg.role === "user" && (
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0 mt-1">
-                  <User className="w-4 h-4 text-muted-foreground" />
+                <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0 mt-1">
+                  <User className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
             </motion.div>
           ))}
           {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Bot className="w-4 h-4 text-primary" />
               </div>
-              <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
-                <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
-                <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+              <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5 shadow-card">
+                <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce [animation-delay:300ms]" />
               </div>
             </motion.div>
           )}
@@ -216,6 +201,7 @@ export default function RxBot() {
         </div>
       </div>
 
+      {/* Input */}
       <div className="border-t border-border bg-card px-4 md:px-6 py-4 shrink-0">
         <div className="max-w-3xl mx-auto space-y-3">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -224,7 +210,7 @@ export default function RxBot() {
                 key={q}
                 onClick={() => sendMessage(q)}
                 disabled={isStreaming}
-                className="shrink-0 px-3 py-1.5 text-xs font-medium rounded-full border border-border bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-50"
+                className="shrink-0 px-3 py-1.5 text-xs font-medium rounded-full border border-border bg-background text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-200 disabled:opacity-50"
               >
                 {q}
               </button>
@@ -236,9 +222,9 @@ export default function RxBot() {
               onChange={(e) => setInput(e.target.value)}
               placeholder={t("rxbot.placeholder")}
               disabled={isStreaming}
-              className="flex-1 bg-muted/50 border border-border rounded-xl px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all disabled:opacity-50"
+              className="flex-1 bg-background border-2 border-border rounded-full px-5 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-primary transition-all duration-200 disabled:opacity-50"
             />
-            <Button type="submit" size="icon" className="rounded-xl shrink-0" disabled={!input.trim() || isStreaming}>
+            <Button type="submit" size="icon" className="rounded-full shrink-0 w-11 h-11" disabled={!input.trim() || isStreaming}>
               <Send className="w-4 h-4" />
             </Button>
           </form>
