@@ -20,9 +20,21 @@ interface Pharmacy {
 
 const DEFAULT_CENTER: [number, number] = [17.385, 78.4867];
 
-function getDirectionsUrl(lat: number, lng: number) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+function getDirectionsUrl(destLat: number, destLng: number, originLat?: number | null, originLng?: number | null) {
+  let url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
+  if (originLat != null && originLng != null) {
+    url += `&origin=${originLat},${originLng}`;
+  }
+  return url;
 }
+
+function getOsmDirectionsUrl(destLat: number, destLng: number, originLat?: number | null, originLng?: number | null) {
+  if (originLat != null && originLng != null) {
+    return `https://www.openstreetmap.org/directions?from=${originLat},${originLng}&to=${destLat},${destLng}`;
+  }
+  return `https://www.openstreetmap.org/directions?to=${destLat},${destLng}`;
+}
+
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371;
