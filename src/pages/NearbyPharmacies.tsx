@@ -288,7 +288,14 @@ export default function NearbyPharmacies() {
           {pharmacies.map((p) => (
             <div
               key={p.id}
-              onClick={() => { setSelectedId(p.id); mapRef.current?.setView([p.lat, p.lng], 16); }}
+              onClick={() => {
+                setSelectedId(p.id);
+                const marker = markerMapRef.current.get(p.id);
+                if (marker && mapRef.current) {
+                  mapRef.current.setView([p.lat, p.lng], 16);
+                  marker.openPopup();
+                }
+              }}
               className={`bg-card rounded-xl border p-4 space-y-2 cursor-pointer transition-all hover:shadow-md ${selectedId === p.id ? "border-primary ring-1 ring-primary/20" : "border-border"}`}
             >
               <h3 className="font-semibold text-sm">{p.name}</h3>
