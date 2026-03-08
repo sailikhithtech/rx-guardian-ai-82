@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ClipboardList, Pill, Bell, AlertTriangle, Upload,
   Clock, CheckCircle2, AlertCircle, ChevronRight
@@ -7,47 +8,53 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-const stats = [
-  { label: "Total Prescriptions", value: "12", icon: ClipboardList, color: "text-primary", bg: "bg-primary/10" },
-  { label: "Active Medicines", value: "5", icon: Pill, color: "text-success", bg: "bg-success/10" },
-  { label: "Upcoming Reminders", value: "3", icon: Bell, color: "text-warning", bg: "bg-warning/10" },
-  { label: "Interactions Found", value: "1", icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
-];
-
-const todaySchedule = [
-  { time: "8:00 AM", medicine: "Metformin 500mg", status: "taken", form: "Tablet" },
-  { time: "12:00 PM", medicine: "Amoxicillin 250mg", status: "upcoming", form: "Capsule" },
-  { time: "2:00 PM", medicine: "Omeprazole 20mg", status: "upcoming", form: "Tablet" },
-  { time: "8:00 PM", medicine: "Metformin 500mg", status: "upcoming", form: "Tablet" },
-  { time: "10:00 PM", medicine: "Atorvastatin 10mg", status: "upcoming", form: "Tablet" },
-];
-
-const recentPrescriptions = [
-  { id: 1, date: "Mar 5, 2026", doctor: "Dr. Sarah Chen", medicines: 3, status: "validated" },
-  { id: 2, date: "Feb 28, 2026", doctor: "Dr. James Miller", medicines: 2, status: "warning" },
-  { id: 3, date: "Feb 15, 2026", doctor: "Dr. Priya Sharma", medicines: 4, status: "pending" },
-];
-
-const statusBadge = (status: string) => {
-  const styles: Record<string, string> = {
-    validated: "bg-success/10 text-success",
-    warning: "bg-warning/10 text-warning",
-    pending: "bg-primary/10 text-primary",
-  };
-  return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${styles[status] || ""}`}>
-      {status}
-    </span>
-  );
-};
-
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
 export default function Dashboard() {
+  const { t } = useTranslation();
+
+  const stats = [
+    { label: t("dashboard.totalPrescriptions"), value: "12", icon: ClipboardList, color: "text-primary", bg: "bg-primary/10" },
+    { label: t("dashboard.activeMedicines"), value: "5", icon: Pill, color: "text-success", bg: "bg-success/10" },
+    { label: t("dashboard.upcomingReminders"), value: "3", icon: Bell, color: "text-warning", bg: "bg-warning/10" },
+    { label: t("dashboard.interactionsFound"), value: "1", icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
+  ];
+
+  const todaySchedule = [
+    { time: "8:00 AM", medicine: "Metformin 500mg", status: "taken", form: "Tablet" },
+    { time: "12:00 PM", medicine: "Amoxicillin 250mg", status: "upcoming", form: "Capsule" },
+    { time: "2:00 PM", medicine: "Omeprazole 20mg", status: "upcoming", form: "Tablet" },
+    { time: "8:00 PM", medicine: "Metformin 500mg", status: "upcoming", form: "Tablet" },
+    { time: "10:00 PM", medicine: "Atorvastatin 10mg", status: "upcoming", form: "Tablet" },
+  ];
+
+  const recentPrescriptions = [
+    { id: 1, date: "Mar 5, 2026", doctor: "Dr. Sarah Chen", medicines: 3, status: "validated" },
+    { id: 2, date: "Feb 28, 2026", doctor: "Dr. James Miller", medicines: 2, status: "warning" },
+    { id: 3, date: "Feb 15, 2026", doctor: "Dr. Priya Sharma", medicines: 4, status: "pending" },
+  ];
+
+  const statusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      validated: "bg-success/10 text-success",
+      warning: "bg-warning/10 text-warning",
+      pending: "bg-primary/10 text-primary",
+    };
+    const labels: Record<string, string> = {
+      validated: t("dashboard.validated"),
+      warning: t("dashboard.warning"),
+      pending: t("dashboard.pending"),
+    };
+    return (
+      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || ""}`}>
+        {labels[status] || status}
+      </span>
+    );
+  };
+
   return (
     <div className="page-container">
-      {/* Welcome Banner */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -55,7 +62,7 @@ export default function Dashboard() {
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Good morning, Alex 👋</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">{t("dashboard.greeting", { name: "Alex" })}</h1>
             <p className="text-muted-foreground mt-1">
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </p>
@@ -63,13 +70,12 @@ export default function Dashboard() {
           <Link to="/analyze">
             <Button size="lg" className="gap-2 rounded-xl shadow-md shadow-primary/20 px-6">
               <Upload className="w-4 h-4" />
-              Upload Prescription
+              {t("dashboard.uploadPrescription")}
             </Button>
           </Link>
         </div>
       </motion.div>
 
-      {/* Stats */}
       <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {stats.map((s) => (
           <motion.div key={s.label} variants={item} className="stat-card">
@@ -83,19 +89,13 @@ export default function Dashboard() {
       </motion.div>
 
       <div className="grid lg:grid-cols-5 gap-6">
-        {/* Today's Schedule */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="lg:col-span-3 bg-card rounded-2xl border border-border p-5 md:p-6"
-        >
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-3 bg-card rounded-2xl border border-border p-5 md:p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="section-title flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
-              Today's Schedule
+              {t("dashboard.todaySchedule")}
             </h2>
-            <Link to="/reminders" className="text-sm text-primary font-medium hover:underline">View all</Link>
+            <Link to="/reminders" className="text-sm text-primary font-medium hover:underline">{t("common.viewAll")}</Link>
           </div>
           <div className="space-y-3">
             {todaySchedule.map((med, i) => (
@@ -116,16 +116,10 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Recent Prescriptions */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="lg:col-span-2 bg-card rounded-2xl border border-border p-5 md:p-6"
-        >
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-2 bg-card rounded-2xl border border-border p-5 md:p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="section-title">Recent Rx</h2>
-            <Link to="/history" className="text-sm text-primary font-medium hover:underline">History</Link>
+            <h2 className="section-title">{t("dashboard.recentRx")}</h2>
+            <Link to="/history" className="text-sm text-primary font-medium hover:underline">{t("nav.history")}</Link>
           </div>
           <div className="space-y-3">
             {recentPrescriptions.map((rx) => (
@@ -135,7 +129,7 @@ export default function Dashboard() {
                   {statusBadge(rx.status)}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{rx.date} · {rx.medicines} medicines</span>
+                  <span className="text-xs text-muted-foreground">{rx.date} · {rx.medicines} {t("dashboard.medicines")}</span>
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />
                 </div>
               </Link>
@@ -144,16 +138,10 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* Adherence Quick View */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-card rounded-2xl border border-border p-5 md:p-6"
-      >
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-card rounded-2xl border border-border p-5 md:p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="section-title">Weekly Adherence</h2>
-          <Link to="/analytics" className="text-sm text-primary font-medium hover:underline">Details</Link>
+          <h2 className="section-title">{t("dashboard.weeklyAdherence")}</h2>
+          <Link to="/analytics" className="text-sm text-primary font-medium hover:underline">{t("common.details")}</Link>
         </div>
         <div className="space-y-3">
           {[
