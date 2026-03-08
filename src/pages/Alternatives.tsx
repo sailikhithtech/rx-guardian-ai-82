@@ -85,22 +85,24 @@ export default function Alternatives() {
                       <td className="p-4 text-right font-medium">{opt.cost}</td>
                       <td className={`p-4 text-right font-medium ${opt.best ? "text-success" : "text-muted-foreground"}`}>{opt.savings}</td>
                       <td className="p-4">
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-2 flex-wrap">
                           <a
                             href={pharmacyUrl(opt.brand, "1mg")}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-lg text-white transition-all duration-200 hover:brightness-90 shadow-sm"
+                            style={{ backgroundColor: "#FF6B35" }}
                           >
-                            1mg <ExternalLink className="w-3 h-3" />
+                            🛒 Order on 1mg
                           </a>
                           <a
                             href={pharmacyUrl(opt.brand, "pharmeasy")}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-secondary/10 text-secondary-foreground hover:bg-secondary/20 transition-colors"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-lg text-white transition-all duration-200 hover:brightness-90 shadow-sm"
+                            style={{ backgroundColor: "#1A9E5F" }}
                           >
-                            PharmEasy <ExternalLink className="w-3 h-3" />
+                            🛒 Order on PharmEasy
                           </a>
                         </div>
                       </td>
