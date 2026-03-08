@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, ScanLine, ShieldCheck, ArrowLeftRight, Bot,
   Bell, Search, ClipboardList, User, BarChart3, Menu, X,
-  Pill, Moon, Sun
+  Pill, Moon, Sun, MapPin
 } from "lucide-react";
 
 const navItems = [
@@ -15,6 +15,7 @@ const navItems = [
   { title: "RxBot", path: "/rxbot", icon: Bot },
   { title: "Reminders", path: "/reminders", icon: Bell },
   { title: "Pill ID", path: "/pill-id", icon: Search },
+  { title: "Pharmacies", path: "/pharmacies", icon: MapPin },
   { title: "History", path: "/history", icon: ClipboardList },
   { title: "Analytics", path: "/analytics", icon: BarChart3 },
   { title: "Profile", path: "/profile", icon: User },

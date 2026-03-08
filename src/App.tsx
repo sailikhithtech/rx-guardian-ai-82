@@ -15,6 +15,7 @@ import PrescriptionHistory from "@/pages/PrescriptionHistory";
 import PatientProfile from "@/pages/PatientProfile";
 import AdherenceAnalytics from "@/pages/AdherenceAnalytics";
 import Login from "@/pages/Login";
+import NearbyPharmacies from "@/pages/NearbyPharmacies";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/rxbot" element={<LayoutRoute><RxBot /></LayoutRoute>} />
           <Route path="/reminders" element={<LayoutRoute><Reminders /></LayoutRoute>} />
           <Route path="/pill-id" element={<LayoutRoute><PillIdentifier /></LayoutRoute>} />
+          <Route path="/pharmacies" element={<LayoutRoute><NearbyPharmacies /></LayoutRoute>} />
           <Route path="/history" element={<LayoutRoute><PrescriptionHistory /></LayoutRoute>} />
           <Route path="/profile" element={<LayoutRoute><PatientProfile /></LayoutRoute>} />
           <Route path="/analytics" element={<LayoutRoute><AdherenceAnalytics /></LayoutRoute>} />
