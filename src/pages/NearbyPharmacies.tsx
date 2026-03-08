@@ -1,20 +1,11 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Navigation, Clock, Star, Phone, ExternalLink, Search, LocateFixed, Filter } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-
-// Fix default marker icon
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
 
 interface Pharmacy {
   id: number;
@@ -46,12 +37,6 @@ function getDirectionsUrl(lat: number, lng: number) {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
-function RecenterMap({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => { map.setView(center, 13); }, [center, map]);
-  return null;
-}
-
 type FilterType = "all" | "open" | "24hr" | "rated";
 
 export default function NearbyPharmacies() {
@@ -59,6 +44,68 @@ export default function NearbyPharmacies() {
   const [center, setCenter] = useState<[number, number]>(DEFAULT_CENTER);
   const [filter, setFilter] = useState<FilterType>("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<L.Marker[]>([]);
+
+  const filtered = pharmacies.filter((p) => {
+    if (filter === "open") return p.open;
+    if (filter === "24hr") return p.is24hr;
+    if (filter === "rated") return p.rating >= 4.5;
+    return true;
+  }).filter((p) =>
+    searchQuery === "" ||
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.address.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = L.map(mapContainerRef.current).setView(center, 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    }).addTo(map);
+
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // Update center
+  useEffect(() => {
+    mapRef.current?.setView(center, 13);
+  }, [center]);
+
+  // Update markers
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    // Clear old markers
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    filtered.forEach((p) => {
+      const marker = L.marker([p.lat, p.lng])
+        .addTo(map)
+        .bindPopup(
+          `<div style="min-width:180px">
+            <p style="font-weight:600;margin:0 0 4px">${p.name}</p>
+            <p style="font-size:12px;color:#666;margin:0 0 4px">${p.address}</p>
+            <p style="font-size:12px;margin:0 0 6px">📞 ${p.phone}</p>
+            <a href="${getDirectionsUrl(p.lat, p.lng)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:#4F8EF7;font-weight:500;text-decoration:none">📍 Get Directions</a>
+          </div>`
+        )
+        .on("click", () => setSelectedId(p.id));
+
+      markersRef.current.push(marker);
+    });
+  }, [filtered]);
 
   const useMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -74,17 +121,6 @@ export default function NearbyPharmacies() {
       () => toast.error("Unable to get your location", { id: "geo" })
     );
   }, []);
-
-  const filtered = pharmacies.filter((p) => {
-    if (filter === "open") return p.open;
-    if (filter === "24hr") return p.is24hr;
-    if (filter === "rated") return p.rating >= 4.5;
-    return true;
-  }).filter((p) =>
-    searchQuery === "" ||
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const filters: { key: FilterType; label: string }[] = [
     { key: "all", label: "All" },
@@ -140,33 +176,7 @@ export default function NearbyPharmacies() {
       <div className="grid lg:grid-cols-5 gap-6">
         {/* Map */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-3 bg-card rounded-2xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
-          <MapContainer center={center} zoom={13} scrollWheelZoom style={{ height: "100%", minHeight: 420, zIndex: 0 }}>
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <RecenterMap center={center} />
-            {filtered.map((p) => (
-              <Marker key={p.id} position={[p.lat, p.lng]} eventHandlers={{ click: () => setSelectedId(p.id) }}>
-                <Popup>
-                  <div className="text-sm space-y-1 min-w-[180px]">
-                    <p className="font-semibold">{p.name}</p>
-                    <p className="text-xs" style={{ color: "#666" }}>{p.address}</p>
-                    <p className="text-xs flex items-center gap-1"><Phone className="w-3 h-3" /> {p.phone}</p>
-                    <a
-                      href={getDirectionsUrl(p.lat, p.lng)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs font-medium mt-1"
-                      style={{ color: "#4F8EF7" }}
-                    >
-                      <Navigation className="w-3 h-3" /> Get Directions
-                    </a>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+          <div ref={mapContainerRef} style={{ height: "100%", minHeight: 420, zIndex: 0 }} />
         </motion.div>
 
         {/* Pharmacy List */}
@@ -177,7 +187,10 @@ export default function NearbyPharmacies() {
           {filtered.map((p) => (
             <div
               key={p.id}
-              onClick={() => setSelectedId(p.id)}
+              onClick={() => {
+                setSelectedId(p.id);
+                mapRef.current?.setView([p.lat, p.lng], 15);
+              }}
               className={`bg-card rounded-xl border p-4 space-y-2 cursor-pointer transition-all hover:shadow-md ${
                 selectedId === p.id ? "border-primary ring-1 ring-primary/20" : "border-border"
               }`}
