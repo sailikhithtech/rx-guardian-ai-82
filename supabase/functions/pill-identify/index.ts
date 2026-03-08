@@ -38,13 +38,18 @@ Base your analysis on the visual appearance — color, shape, markings, size. If
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Identify this pill/tablet from the image." },
-              { type: "image_url", image_url: { url: `data:${mimeType || "image/jpeg"};base64,${imageBase64}` } },
-            ],
-          },
+          imageBase64
+            ? {
+                role: "user",
+                content: [
+                  { type: "text", text: "Identify this pill/tablet from the image." },
+                  { type: "image_url", image_url: { url: `data:${mimeType || "image/jpeg"};base64,${imageBase64}` } },
+                ],
+              }
+            : {
+                role: "user",
+                content: `Provide detailed information about the medicine called "${manualQuery}". Return the same JSON format.`,
+              },
         ],
       }),
     });
