@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
 
 const weeklyData = [
   { day: "Mon", taken: 4, missed: 0 },
@@ -30,7 +31,7 @@ const perMedicine = [
   { name: "Omeprazole", adherence: 85, streak: 5 },
 ];
 
-const exportReport = () => {
+const exportReport = (userName: string) => {
   try {
     const doc = new jsPDF();
     let y = 20;
@@ -41,7 +42,7 @@ const exportReport = () => {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(`Generated: ${new Date().toLocaleDateString("en-IN", { dateStyle: "long" })}`, 20, y); y += 5;
-    doc.text("Patient: Alex Johnson", 20, y); y += 10;
+    doc.text(`Patient: ${userName}`, 20, y); y += 10;
     doc.setDrawColor(200); doc.line(20, y, 190, y); y += 10;
 
     doc.setFontSize(13); doc.setFont("helvetica", "bold");
@@ -79,6 +80,8 @@ const exportReport = () => {
 };
 
 export default function AdherenceAnalytics() {
+  const { user, isGuest } = useAuth();
+  const userName = user?.user_metadata?.full_name || (isGuest ? "Guest" : "User");
   return (
     <div className="page-container">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -88,7 +91,7 @@ export default function AdherenceAnalytics() {
           </h1>
           <p className="text-muted-foreground mt-1">Track your medication compliance</p>
         </div>
-        <Button variant="outline" className="gap-2 rounded-xl self-start sm:self-auto" onClick={exportReport}>
+        <Button variant="outline" className="gap-2 rounded-xl self-start sm:self-auto" onClick={() => exportReport(userName)}>
           <Download className="w-4 h-4" /> Export Report
         </Button>
       </div>

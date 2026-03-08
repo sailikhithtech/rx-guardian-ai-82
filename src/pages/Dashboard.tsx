@@ -8,12 +8,15 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/contexts/AuthContext";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const } } };
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const { user, isGuest } = useAuth();
+  const userName = user?.user_metadata?.full_name || (isGuest ? "Guest" : "User");
 
   const stats = [
     { label: t("dashboard.totalPrescriptions"), value: "12", icon: ClipboardList, color: "text-primary", bg: "bg-primary/10" },
@@ -76,7 +79,7 @@ export default function Dashboard() {
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)" }} />
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 relative z-10">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white">{t("dashboard.greeting", { name: "Alex" })} 👋</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-white">{t("dashboard.greeting", { name: userName })} 👋</h1>
             <p className="text-white/70 mt-2 text-sm">
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </p>
