@@ -6,6 +6,15 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* Language-specific font families */
+[data-lang="hi"] body, [data-lang="mr"] body { font-family: 'Noto Sans Devanagari', 'Inter', sans-serif; }
+[data-lang="te"] body { font-family: 'Noto Sans Telugu', 'Inter', sans-serif; }
+[data-lang="ta"] body { font-family: 'Noto Sans Tamil', 'Inter', sans-serif; }
+[data-lang="kn"] body { font-family: 'Noto Sans Kannada', 'Inter', sans-serif; }
+[data-lang="ml"] body { font-family: 'Noto Sans Malayalam', 'Inter', sans-serif; }
+[data-lang="bn"] body { font-family: 'Noto Sans Bengali', 'Inter', sans-serif; }
+[data-lang="ar"] body, [data-lang="ur"] body { font-family: 'Noto Sans Arabic', 'Inter', sans-serif; }
+
 @layer base {
   :root {
     --background: 0 0% 98%;

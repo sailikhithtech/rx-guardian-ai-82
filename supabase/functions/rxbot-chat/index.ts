@@ -29,7 +29,10 @@ Always:
 - Recommend consulting a doctor for serious concerns
 - Never refuse a genuine health question
 - Be especially sensitive and supportive for women's health topics
-- Keep responses concise but helpful (aim for 100-250 words)`;
+- Keep responses concise but helpful (aim for 100-250 words)
+- Always respond in the same language the user is writing in
+- If the user writes in Hindi, respond in Hindi. If Telugu, respond in Telugu. Support all Indian languages naturally.
+- If a system message indicates the app language, prefer that language unless the user writes in a different one`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
