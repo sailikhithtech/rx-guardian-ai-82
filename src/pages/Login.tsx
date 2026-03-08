@@ -8,8 +8,13 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import emailjs from "@emailjs/browser";
 
 type Step = "form" | "otp" | "success";
+
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
 export default function Login() {
   const [isSignup, setIsSignup] = useState(false);
@@ -57,12 +62,25 @@ export default function Login() {
 
   const startResendCountdown = useCallback(() => setResendCountdown(30), []);
 
-  const sendOtpEmail = async (userEmail: string, userName: string) => {
+  const generateAndSendOtp = async (userEmail: string, userName: string) => {
+    // 1. Generate OTP server-side and store in DB
     const { data, error } = await supabase.functions.invoke("send-otp", {
-      body: { email: userEmail, name: userName },
+      body: { email: userEmail },
     });
-    if (error) throw new Error(error.message || "Failed to send OTP");
+    if (error) throw new Error(error.message || "Failed to generate OTP");
     if (data?.error) throw new Error(data.error);
+
+    // 2. Send email client-side via EmailJS
+    await emailjs.send(
+      EMAILJS_SERVICE_ID,
+      EMAILJS_TEMPLATE_ID,
+      {
+        name: userName || "User",
+        email: userEmail,
+        otp_code: data.otp_code,
+      },
+      EMAILJS_PUBLIC_KEY
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,18 +88,14 @@ export default function Login() {
     setSubmitting(true);
     try {
       if (isSignup) {
-        // Sign up with auto-confirm enabled (no Supabase verification email)
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: { full_name: fullName },
-          },
+          options: { data: { full_name: fullName } },
         });
         if (error) throw error;
 
-        // Send custom OTP via edge function
-        await sendOtpEmail(email, fullName);
+        await generateAndSendOtp(email, fullName);
         setStep("otp");
         startResendCountdown();
         toast.success("Verification code sent to your email!");
@@ -113,9 +127,8 @@ export default function Login() {
       } else if (data?.reason === "expired") {
         toast.error("⏰ Code expired. Please request a new one.");
         setOtpValue("");
-        setResendCountdown(0); // Allow immediate resend
+        setResendCountdown(0);
       } else {
-        // Invalid OTP
         const newAttempts = wrongAttempts + 1;
         setWrongAttempts(newAttempts);
         setShakeOtp(true);
@@ -138,7 +151,7 @@ export default function Login() {
   const handleResendOtp = async () => {
     if (resendCountdown > 0) return;
     try {
-      await sendOtpEmail(email, fullName);
+      await generateAndSendOtp(email, fullName);
       setOtpValue("");
       setWrongAttempts(0);
       setLockUntil(null);
@@ -163,7 +176,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel — Branding */}
       <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden text-white flex-col justify-between p-10"
         style={{ background: "linear-gradient(135deg, hsl(210 52% 24%) 0%, hsl(174 83% 30%) 100%)" }}
       >
@@ -175,29 +187,21 @@ export default function Login() {
             </div>
             <span className="text-2xl font-bold tracking-tight">RxVision</span>
           </div>
-          <h2 className="text-4xl font-bold leading-tight mb-4">
-            AI-Powered<br />Medication Safety
-          </h2>
-          <p className="text-white/60 text-lg max-w-md">
-            Intelligent prescription analysis, drug interaction alerts, and personalized medication guidance.
-          </p>
+          <h2 className="text-4xl font-bold leading-tight mb-4">AI-Powered<br />Medication Safety</h2>
+          <p className="text-white/60 text-lg max-w-md">Intelligent prescription analysis, drug interaction alerts, and personalized medication guidance.</p>
         </div>
         <div className="relative z-10 space-y-4">
           {features.map((f) => (
             <div key={f.label} className="flex items-center gap-3 text-white/80">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                <f.icon className="w-5 h-5" />
-              </div>
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center"><f.icon className="w-5 h-5" /></div>
               <span className="font-medium">{f.label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right Panel — Form */}
       <div className="flex-1 flex items-center justify-center bg-background p-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-          {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
             <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/20">
               <Pill className="w-7 h-7 text-primary-foreground" />
@@ -205,7 +209,6 @@ export default function Login() {
             <h1 className="text-2xl font-bold">Welcome to RxVision</h1>
             <p className="text-muted-foreground mt-1 text-sm">AI-Powered Medication Safety</p>
           </div>
-
           <div className="lg:block hidden mb-8">
             <h1 className="text-2xl font-bold">Welcome back</h1>
             <p className="text-muted-foreground mt-1 text-sm">Sign in to your account to continue</p>
@@ -216,18 +219,11 @@ export default function Login() {
               {step === "form" && (
                 <motion.div key="form" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
                   <div className="flex bg-muted rounded-xl p-1 mb-6">
-                    <button onClick={() => setIsSignup(false)} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${!isSignup ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
-                      Log In
-                    </button>
-                    <button onClick={() => setIsSignup(true)} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${isSignup ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
-                      Sign Up
-                    </button>
+                    <button onClick={() => setIsSignup(false)} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${!isSignup ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>Log In</button>
+                    <button onClick={() => setIsSignup(true)} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${isSignup ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>Sign Up</button>
                   </div>
-
                   <form onSubmit={handleSubmit} className="space-y-4">
-                    {isSignup && (
-                      <Input placeholder="Full Name" className="rounded-xl h-11" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                    )}
+                    {isSignup && <Input placeholder="Full Name" className="rounded-xl h-11" required value={fullName} onChange={(e) => setFullName(e.target.value)} />}
                     <Input type="email" placeholder="Email address" className="rounded-xl h-11" required value={email} onChange={(e) => setEmail(e.target.value)} />
                     <div className="relative">
                       <Input type={showPassword ? "text" : "password"} placeholder="Password" className="rounded-xl h-11 pr-10" required value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -240,61 +236,39 @@ export default function Login() {
                       {isSignup ? "Create Account" : "Log In"} {!submitting && <ArrowRight className="w-4 h-4" />}
                     </Button>
                   </form>
-
                   <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
                     <div className="relative flex justify-center"><span className="bg-card px-3 text-xs text-muted-foreground">or</span></div>
                   </div>
-
-                  <Button variant="ghost" className="w-full rounded-xl h-11 border border-border" onClick={handleGuest}>
-                    Continue as Guest
-                  </Button>
+                  <Button variant="ghost" className="w-full rounded-xl h-11 border border-border" onClick={handleGuest}>Continue as Guest</Button>
                 </motion.div>
               )}
 
               {step === "otp" && (
                 <motion.div key="otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-6">
                   <div className="text-center space-y-2">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                      <Pill className="w-6 h-6 text-primary" />
-                    </div>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto"><Pill className="w-6 h-6 text-primary" /></div>
                     <h2 className="text-lg font-semibold">Verify Your Email 📧</h2>
-                    <p className="text-sm text-muted-foreground">
-                      We sent a 6-digit code to<br />
-                      <span className="font-medium text-foreground">{email}</span>
-                    </p>
+                    <p className="text-sm text-muted-foreground">We sent a 6-digit code to<br /><span className="font-medium text-foreground">{email}</span></p>
                   </div>
-
                   <div className="flex justify-center">
                     <motion.div animate={shakeOtp ? { x: [0, -10, 10, -10, 10, 0] } : {}} transition={{ duration: 0.5 }}>
                       <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue} disabled={isLocked}>
                         <InputOTPGroup>
-                          {[0,1,2,3,4,5].map((idx) => (
-                            <InputOTPSlot key={idx} index={idx} className="w-12 h-14 text-lg border-border rounded-xl" />
-                          ))}
+                          {[0,1,2,3,4,5].map((idx) => (<InputOTPSlot key={idx} index={idx} className="w-12 h-14 text-lg border-border rounded-xl" />))}
                         </InputOTPGroup>
                       </InputOTP>
                     </motion.div>
                   </div>
-
-                  {isLocked && (
-                    <p className="text-center text-sm text-destructive font-medium">Too many attempts. Please wait 1 minute.</p>
-                  )}
-
+                  {isLocked && <p className="text-center text-sm text-destructive font-medium">Too many attempts. Please wait 1 minute.</p>}
                   <Button className="w-full rounded-xl h-11 gap-2" disabled={otpValue.length !== 6 || verifying || isLocked} onClick={handleVerifyOtp}>
-                    {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    Verify OTP
+                    {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Verify OTP
                   </Button>
-
                   <div className="flex items-center justify-between text-sm">
-                    <button onClick={handleBackToForm} className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                      <ArrowLeft className="w-3 h-3" /> Change Email
-                    </button>
-                    {resendCountdown > 0 ? (
-                      <span className="text-muted-foreground">Resend in {formatCountdown(resendCountdown)}</span>
-                    ) : (
-                      <button onClick={handleResendOtp} className="text-primary hover:text-primary/80 font-medium transition-colors">Resend OTP</button>
-                    )}
+                    <button onClick={handleBackToForm} className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"><ArrowLeft className="w-3 h-3" /> Change Email</button>
+                    {resendCountdown > 0
+                      ? <span className="text-muted-foreground">Resend in {formatCountdown(resendCountdown)}</span>
+                      : <button onClick={handleResendOtp} className="text-primary hover:text-primary/80 font-medium transition-colors">Resend OTP</button>}
                   </div>
                 </motion.div>
               )}
