@@ -91,7 +91,7 @@ export default function AdherenceAnalytics() {
           </h1>
           <p className="text-muted-foreground mt-1">Track your medication compliance</p>
         </div>
-        <Button variant="outline" className="gap-2 rounded-xl self-start sm:self-auto" onClick={exportReport}>
+        <Button variant="outline" className="gap-2 rounded-xl self-start sm:self-auto" onClick={() => exportReport(userName)}>
           <Download className="w-4 h-4" /> Export Report
         </Button>
       </div>
