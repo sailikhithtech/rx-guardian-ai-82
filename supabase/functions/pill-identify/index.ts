@@ -9,8 +9,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { imageBase64, mimeType } = await req.json();
-    if (!imageBase64) throw new Error("No image provided");
+    const { imageBase64, mimeType, manualQuery } = await req.json();
+    if (!imageBase64 && !manualQuery) throw new Error("No image or query provided");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
