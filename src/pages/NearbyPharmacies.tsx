@@ -278,7 +278,7 @@ export default function NearbyPharmacies() {
 
       <div className="grid lg:grid-cols-5 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-3 bg-card rounded-2xl border border-border overflow-hidden" style={{ minHeight: 420 }}>
-          <div ref={mapContainerRef} style={{ height: "100%", minHeight: 420, zIndex: 0 }} />
+          <div ref={mapContainerRef} style={{ height: "100%", minHeight: 420, zIndex: 1 }} />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="lg:col-span-2 space-y-3 max-h-[520px] overflow-y-auto pr-1">
