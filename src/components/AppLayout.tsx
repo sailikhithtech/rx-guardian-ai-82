@@ -78,13 +78,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="p-3 border-t border-sidebar-border">
+        <div className="p-3 border-t border-sidebar-border space-y-0.5">
+          <div className="px-3 py-1.5 text-xs text-muted-foreground truncate">
+            {isGuest ? "Guest User" : user?.email}
+          </div>
           <button
             onClick={toggleDark}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 w-full transition-colors"
           >
             {darkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
             {darkMode ? "Light Mode" : "Dark Mode"}
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-colors"
+          >
+            <LogOut className="w-[18px] h-[18px]" />
+            {isGuest ? "Exit Guest" : "Log Out"}
           </button>
         </div>
       </aside>
