@@ -30,17 +30,22 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 const userIcon = L.divIcon({
-  className: "",
-  html: `<div style="width:18px;height:18px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.6)"></div>`,
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
+  className: "leaflet-user-marker",
+  html: `<div style="width:24px;height:24px;position:relative;">
+    <div style="width:24px;height:24px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.5);position:relative;z-index:2"></div>
+    <div style="width:24px;height:24px;background:#3b82f6;border-radius:50%;position:absolute;top:0;left:0;opacity:0.3;animation:pulse 2s infinite"></div>
+  </div>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+  popupAnchor: [0, -14],
 });
 
 const pharmacyIcon = L.divIcon({
-  className: "",
-  html: `<div style="width:14px;height:14px;background:#ef4444;border:2px solid white;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,0.3)"></div>`,
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
+  className: "leaflet-pharmacy-marker",
+  html: `<div style="width:36px;height:36px;background:#16a34a;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer">💊</div>`,
+  iconSize: [36, 36],
+  iconAnchor: [18, 18],
+  popupAnchor: [0, -20],
 });
 
 export default function NearbyPharmacies() {
