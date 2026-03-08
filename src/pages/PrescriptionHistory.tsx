@@ -1,0 +1,115 @@
+import { motion } from "framer-motion";
+import { ClipboardList, ChevronDown, Download, AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+const prescriptions = [
+  {
+    id: 1, date: "Mar 5, 2026", doctor: "Dr. Sarah Chen", medicines: [
+      { name: "Metformin 500mg", dosage: "Twice daily", duration: "30 days" },
+      { name: "Atorvastatin 10mg", dosage: "Once daily", duration: "30 days" },
+      { name: "Aspirin 75mg", dosage: "Once daily", duration: "30 days" },
+    ], interactions: 0, status: "validated"
+  },
+  {
+    id: 2, date: "Feb 28, 2026", doctor: "Dr. James Miller", medicines: [
+      { name: "Amoxicillin 250mg", dosage: "Three times daily", duration: "7 days" },
+      { name: "Ibuprofen 400mg", dosage: "As needed", duration: "5 days" },
+    ], interactions: 1, status: "warning"
+  },
+  {
+    id: 3, date: "Feb 15, 2026", doctor: "Dr. Priya Sharma", medicines: [
+      { name: "Omeprazole 20mg", dosage: "Once daily", duration: "14 days" },
+      { name: "Domperidone 10mg", dosage: "Before meals", duration: "7 days" },
+      { name: "Dicyclomine 20mg", dosage: "Twice daily", duration: "5 days" },
+      { name: "ORS Sachets", dosage: "As needed", duration: "3 days" },
+    ], interactions: 0, status: "validated"
+  },
+  {
+    id: 4, date: "Jan 20, 2026", doctor: "Dr. Sarah Chen", medicines: [
+      { name: "Cetirizine 10mg", dosage: "Once daily", duration: "10 days" },
+    ], interactions: 0, status: "pending"
+  },
+];
+
+const statusConfig: Record<string, { icon: any; color: string; bg: string; label: string }> = {
+  validated: { icon: CheckCircle2, color: "text-success", bg: "bg-success/10", label: "Validated" },
+  warning: { icon: AlertTriangle, color: "text-warning", bg: "bg-warning/10", label: "Warning" },
+  pending: { icon: Clock, color: "text-primary", bg: "bg-primary/10", label: "Pending" },
+};
+
+export default function PrescriptionHistory() {
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  return (
+    <div className="page-container">
+      <div>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <ClipboardList className="w-7 h-7 text-primary" /> Prescription History
+        </h1>
+        <p className="text-muted-foreground mt-1">View and manage all your past prescriptions</p>
+      </div>
+
+      {/* Timeline */}
+      <div className="relative">
+        <div className="absolute left-4 md:left-6 top-0 bottom-0 w-px bg-border" />
+        <div className="space-y-4">
+          {prescriptions.map((rx, i) => {
+            const config = statusConfig[rx.status];
+            const isExpanded = expanded === rx.id;
+            const Icon = config.icon;
+            return (
+              <motion.div
+                key={rx.id}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.08 }}
+                className="relative pl-10 md:pl-14"
+              >
+                <div className={`absolute left-2 md:left-4 top-4 w-5 h-5 rounded-full ${config.bg} flex items-center justify-center z-10`}>
+                  <Icon className={`w-3 h-3 ${config.color}`} />
+                </div>
+                <div className="bg-card rounded-2xl border border-border overflow-hidden">
+                  <button
+                    onClick={() => setExpanded(isExpanded ? null : rx.id)}
+                    className="w-full text-left p-4 md:p-5 hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold">{rx.doctor}</p>
+                        <p className="text-sm text-muted-foreground mt-0.5">{rx.date} · {rx.medicines.length} medicines</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {rx.interactions > 0 && (
+                          <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full">{rx.interactions} interaction</span>
+                        )}
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${config.bg} ${config.color}`}>{config.label}</span>
+                        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                      </div>
+                    </div>
+                  </button>
+                  {isExpanded && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="border-t border-border p-4 md:p-5">
+                      <div className="space-y-2 mb-4">
+                        {rx.medicines.map((m, j) => (
+                          <div key={j} className="flex items-center justify-between text-sm p-2 rounded-lg bg-muted/30">
+                            <span className="font-medium">{m.name}</span>
+                            <span className="text-muted-foreground">{m.dosage} · {m.duration}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <Button variant="outline" size="sm" className="gap-2 rounded-lg" onClick={() => toast.success("PDF downloaded!")}>
+                        <Download className="w-4 h-4" /> Download PDF
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
