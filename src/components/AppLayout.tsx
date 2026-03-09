@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, ScanLine, ShieldCheck, ArrowLeftRight, Bot,
   Bell, Search, ClipboardList, User, BarChart3, Menu, X,
-  Pill, Moon, Sun, MapPin, LogOut, Calendar
+  Pill, Moon, Sun, MapPin, LogOut, Calendar, Stethoscope
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
