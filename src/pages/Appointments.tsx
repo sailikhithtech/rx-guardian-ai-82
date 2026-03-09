@@ -203,7 +203,7 @@ export default function Appointments() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleBookNow(doctor)}>{t('appointments.doctorCard.viewProfile')}</Button>
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/appointments/doctor/${doctor.id}`)}>{t('appointments.doctorCard.viewProfile')}</Button>
                         <Button size="sm" onClick={() => handleBookNow(doctor)}>{t('appointments.doctorCard.bookNow')}</Button>
                       </div>
                     </div>
