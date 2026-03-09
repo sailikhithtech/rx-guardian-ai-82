@@ -32,6 +32,7 @@ import DoctorPatients from "@/pages/doctor/DoctorPatients";
 import DoctorPrescriptions from "@/pages/doctor/DoctorPrescriptions";
 import DoctorAnalytics from "@/pages/doctor/DoctorAnalytics";
 import DoctorSettings from "@/pages/doctor/DoctorSettings";
+import DoctorMessages from "@/pages/doctor/DoctorMessages";
 
 const queryClient = new QueryClient();
 
