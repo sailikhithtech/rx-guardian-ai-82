@@ -33,16 +33,15 @@ export default function Login() {
   const [selectedRole, setSelectedRole] = useState<UserRole>("patient");
   const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [verifying, setVerifying] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
   const [shakeOtp, setShakeOtp] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { session, isGuest, setGuest } = useAuth();
 
-  const from = (location.state as any)?.from || "/";
+  const from = (location.state as any)?.from || (selectedRole === "doctor" ? "/doctor/dashboard" : "/");
   const otpType = authMode === "signup" ? "signup" : "email";
-
-  useEffect(() => {
     if (session || isGuest) navigate(from, { replace: true });
   }, [session, isGuest, navigate, from]);
 
