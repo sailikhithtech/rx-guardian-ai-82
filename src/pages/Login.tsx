@@ -367,9 +367,16 @@ export default function Login() {
                     <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
                     <div className="relative flex justify-center"><span className="bg-card px-3 text-xs text-muted-foreground">or</span></div>
                   </div>
-                  <Button variant="ghost" className="w-full rounded-xl h-11 border border-border" onClick={handleGuest}>
-                    Continue as Guest
-                  </Button>
+                  {selectedRole === "patient" && (
+                    <Button variant="ghost" className="w-full rounded-xl h-11 border border-border" onClick={handleGuest}>
+                      Continue as Guest
+                    </Button>
+                  )}
+                  {selectedRole === "doctor" && authMode === "login" && (
+                    <Link to="/doctor/register" className="block text-center text-sm text-primary hover:text-primary/80 font-medium py-2 transition-colors">
+                      Don't have a doctor account? Register here →
+                    </Link>
+                  )}
                 </motion.div>
               )}
 
