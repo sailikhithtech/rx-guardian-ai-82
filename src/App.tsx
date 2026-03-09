@@ -17,6 +17,7 @@ import PrescriptionHistory from "@/pages/PrescriptionHistory";
 import PatientProfile from "@/pages/PatientProfile";
 import AdherenceAnalytics from "@/pages/AdherenceAnalytics";
 import Appointments from "@/pages/Appointments";
+import DoctorProfile from "@/pages/DoctorProfile";
 import Login from "@/pages/Login";
 import NearbyPharmacies from "@/pages/NearbyPharmacies";
 import NotFound from "@/pages/NotFound";
