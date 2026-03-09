@@ -29,6 +29,7 @@ const navKeys = [
   { titleKey: "nav.rxbot", path: "/rxbot", icon: Bot },
   { titleKey: "nav.reminders", path: "/reminders", icon: Bell },
   { titleKey: "nav.appointments", path: "/appointments", icon: Calendar },
+  { titleKey: "nav.myDoctor", path: "/my-doctor", icon: Stethoscope },
   { titleKey: "nav.pillId", path: "/pill-id", icon: Search },
   { titleKey: "nav.pharmacies", path: "/pharmacies", icon: MapPin },
   { titleKey: "nav.history", path: "/history", icon: ClipboardList },
