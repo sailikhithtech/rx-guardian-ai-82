@@ -1,0 +1,2 @@
+ALTER TABLE appointments DROP CONSTRAINT IF EXISTS appointments_payment_method_check;
+ALTER TABLE appointments ADD CONSTRAINT appointments_payment_method_check CHECK (payment_method IN ('pay_online', 'pay_at_clinic', 'online', 'clinic', 'upi', 'card'));
