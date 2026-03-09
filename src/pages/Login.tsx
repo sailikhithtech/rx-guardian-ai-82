@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Pill, Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, ArrowLeft, Shield, Heart, Bot, Mail } from "lucide-react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Pill, Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, ArrowLeft, Shield, Heart, Bot, Mail, Stethoscope, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-type Step = "form" | "otp" | "success";
+type Step = "role" | "form" | "otp" | "success";
 type AuthMode = "login" | "signup" | "otp-login";
+type UserRole = "patient" | "doctor";
 
 const friendlyError = (msg: string) => {
   if (msg.includes("Invalid login credentials")) return "❌ Wrong email or password. Try again.";
@@ -28,7 +29,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [step, setStep] = useState<Step>("form");
+  const [step, setStep] = useState<Step>("role");
+  const [selectedRole, setSelectedRole] = useState<UserRole>("patient");
   const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [verifying, setVerifying] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
@@ -38,7 +40,7 @@ export default function Login() {
   const location = useLocation();
   const { session, isGuest, setGuest } = useAuth();
 
-  const from = (location.state as any)?.from || "/";
+  const from = (location.state as any)?.from || (selectedRole === "doctor" ? "/doctor/dashboard" : "/");
   const otpType = authMode === "signup" ? "signup" : "email";
 
   useEffect(() => {
@@ -253,9 +255,47 @@ export default function Login() {
 
           <div className="bg-card rounded-2xl border border-border p-6 md:p-8 shadow-card">
             <AnimatePresence mode="wait">
+              {/* ═══ ROLE SELECTION STEP ═══ */}
+              {step === "role" && (
+                <motion.div key="role" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
+                  <h2 className="text-lg font-semibold text-center mb-6">I am a...</h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => { setSelectedRole("patient"); setStep("form"); }}
+                      className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border hover:border-primary/50 transition-colors"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <User className="w-7 h-7 text-primary" />
+                      </div>
+                      <span className="font-semibold">Patient</span>
+                    </button>
+                    <button
+                      onClick={() => { setSelectedRole("doctor"); setStep("form"); }}
+                      className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border hover:border-primary/50 transition-colors"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <Stethoscope className="w-7 h-7 text-primary" />
+                      </div>
+                      <span className="font-semibold">Doctor</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
               {/* ═══ FORM STEP ═══ */}
               {step === "form" && (
                 <motion.div key="form" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
+                  {/* Back to role selection */}
+                  <button onClick={() => setStep("role")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+                    <ArrowLeft className="w-3 h-3" /> Change role
+                  </button>
+
+                  {/* Role indicator */}
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    {selectedRole === "doctor" ? <Stethoscope className="w-4 h-4 text-primary" /> : <User className="w-4 h-4 text-primary" />}
+                    <span className="text-sm font-medium text-primary">{selectedRole === "doctor" ? "Doctor" : "Patient"} Login</span>
+                  </div>
+
                   {/* Tabs */}
                   <div className="flex bg-muted rounded-xl p-1 mb-6">
                     <button
@@ -327,9 +367,16 @@ export default function Login() {
                     <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
                     <div className="relative flex justify-center"><span className="bg-card px-3 text-xs text-muted-foreground">or</span></div>
                   </div>
-                  <Button variant="ghost" className="w-full rounded-xl h-11 border border-border" onClick={handleGuest}>
-                    Continue as Guest
-                  </Button>
+                  {selectedRole === "patient" && (
+                    <Button variant="ghost" className="w-full rounded-xl h-11 border border-border" onClick={handleGuest}>
+                      Continue as Guest
+                    </Button>
+                  )}
+                  {selectedRole === "doctor" && authMode === "login" && (
+                    <Link to="/doctor/register" className="block text-center text-sm text-primary hover:text-primary/80 font-medium py-2 transition-colors">
+                      Don't have a doctor account? Register here →
+                    </Link>
+                  )}
                 </motion.div>
               )}
 
