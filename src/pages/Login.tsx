@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Pill, Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, ArrowLeft, Shield, Heart, Bot, Mail } from "lucide-react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Pill, Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, ArrowLeft, Shield, Heart, Bot, Mail, Stethoscope, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-type Step = "form" | "otp" | "success";
+type Step = "role" | "form" | "otp" | "success";
 type AuthMode = "login" | "signup" | "otp-login";
+type UserRole = "patient" | "doctor";
 
 const friendlyError = (msg: string) => {
   if (msg.includes("Invalid login credentials")) return "❌ Wrong email or password. Try again.";
