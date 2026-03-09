@@ -130,6 +130,159 @@ export type Database = {
         }
         Relationships: []
       }
+      consultations: {
+        Row: {
+          consultation_date: string
+          created_at: string
+          diagnosis: string | null
+          doctor_id: string
+          doctor_name: string
+          id: string
+          notes: string | null
+          prescribed_medicines: string[] | null
+          reason: string | null
+          specialization: string
+          user_id: string
+        }
+        Insert: {
+          consultation_date: string
+          created_at?: string
+          diagnosis?: string | null
+          doctor_id: string
+          doctor_name: string
+          id?: string
+          notes?: string | null
+          prescribed_medicines?: string[] | null
+          reason?: string | null
+          specialization: string
+          user_id: string
+        }
+        Update: {
+          consultation_date?: string
+          created_at?: string
+          diagnosis?: string | null
+          doctor_id?: string
+          doctor_name?: string
+          id?: string
+          notes?: string | null
+          prescribed_medicines?: string[] | null
+          reason?: string | null
+          specialization?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_vitals: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          recorded_at: string
+          secondary_value: number | null
+          unit: string
+          user_id: string
+          value: number
+          vital_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recorded_at?: string
+          secondary_value?: number | null
+          unit: string
+          user_id: string
+          value: number
+          vital_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recorded_at?: string
+          secondary_value?: number | null
+          unit?: string
+          user_id?: string
+          value?: number
+          vital_type?: string
+        }
+        Relationships: []
+      }
+      medical_documents: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          doctor_name: string | null
+          document_date: string | null
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          doctor_name?: string | null
+          document_date?: string | null
+          file_name: string
+          file_type: string
+          file_url: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          doctor_name?: string | null
+          document_date?: string | null
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_doctors: {
+        Row: {
+          created_at: string
+          doctor_id: string
+          doctor_name: string
+          hospital: string
+          id: string
+          image: string | null
+          last_visited: string | null
+          specialization: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          doctor_id: string
+          doctor_name: string
+          hospital: string
+          id?: string
+          image?: string | null
+          last_visited?: string | null
+          specialization: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          doctor_id?: string
+          doctor_name?: string
+          hospital?: string
+          id?: string
+          image?: string | null
+          last_visited?: string | null
+          specialization?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
