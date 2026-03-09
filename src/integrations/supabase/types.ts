@@ -254,6 +254,47 @@ export type Database = {
           },
         ]
       }
+      doctor_prescriptions: {
+        Row: {
+          created_at: string
+          diagnosis: string | null
+          doctor_id: string
+          follow_up_date: string | null
+          id: string
+          medicines: Json
+          notes: string | null
+          patient_id: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis?: string | null
+          doctor_id: string
+          follow_up_date?: string | null
+          id?: string
+          medicines?: Json
+          notes?: string | null
+          patient_id: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: string | null
+          doctor_id?: string
+          follow_up_date?: string | null
+          id?: string
+          medicines?: Json
+          notes?: string | null
+          patient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_prescriptions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_profiles: {
         Row: {
           about: string | null
@@ -401,6 +442,33 @@ export type Database = {
           file_url?: string
           id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          receiver_id?: string
+          sender_id?: string
         }
         Relationships: []
       }
