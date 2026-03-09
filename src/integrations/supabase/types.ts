@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          appointment_type: string
+          created_at: string
+          doctor_id: string
+          doctor_name: string
+          fee: number
+          hospital: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          reason: string | null
+          specialization: string
+          status: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          appointment_type: string
+          created_at?: string
+          doctor_id: string
+          doctor_name: string
+          fee?: number
+          hospital: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          specialization: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          appointment_type?: string
+          created_at?: string
+          doctor_id?: string
+          doctor_name?: string
+          fee?: number
+          hospital?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          specialization?: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
