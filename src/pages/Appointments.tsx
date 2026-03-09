@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,12 +17,29 @@ export default function Appointments() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('find');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSpecialization, setSelectedSpecialization] = useState('all');
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [bookingStep, setBookingStep] = useState(0); // 0: none, 1: type, 2: date/time, 3: details, 4: confirm, 5: success
+  const [bookingStep, setBookingStep] = useState(0);
   const [bookingData, setBookingData] = useState<any>({});
+
+  // Handle ?book=doctorId from profile page
+  useEffect(() => {
+    const bookId = searchParams.get('book');
+    if (bookId) {
+      const doc = doctors.find(d => d.id === bookId);
+      if (doc) {
+        setSelectedDoctor(doc);
+        setBookingData({ doctor: doc });
+        setBookingStep(1);
+        setActiveTab('book');
+      }
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const { data: myAppointments = [], isLoading: isLoadingAppointments } = useQuery({
     queryKey: ['appointments'],
@@ -185,7 +203,7 @@ export default function Appointments() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleBookNow(doctor)}>{t('appointments.doctorCard.viewProfile')}</Button>
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/appointments/doctor/${doctor.id}`)}>{t('appointments.doctorCard.viewProfile')}</Button>
                         <Button size="sm" onClick={() => handleBookNow(doctor)}>{t('appointments.doctorCard.bookNow')}</Button>
                       </div>
                     </div>

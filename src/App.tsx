@@ -17,6 +17,7 @@ import PrescriptionHistory from "@/pages/PrescriptionHistory";
 import PatientProfile from "@/pages/PatientProfile";
 import AdherenceAnalytics from "@/pages/AdherenceAnalytics";
 import Appointments from "@/pages/Appointments";
+import DoctorProfile from "@/pages/DoctorProfile";
 import Login from "@/pages/Login";
 import NearbyPharmacies from "@/pages/NearbyPharmacies";
 import NotFound from "@/pages/NotFound";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/rxbot" element={<ProtectedLayout><RxBot /></ProtectedLayout>} />
             <Route path="/reminders" element={<ProtectedLayout><Reminders /></ProtectedLayout>} />
             <Route path="/appointments" element={<ProtectedLayout><Appointments /></ProtectedLayout>} />
+            <Route path="/appointments/doctor/:doctorId" element={<ProtectedLayout><DoctorProfile /></ProtectedLayout>} />
             <Route path="/pill-id" element={<ProtectedLayout><PillIdentifier /></ProtectedLayout>} />
             <Route path="/pharmacies" element={<ProtectedLayout><NearbyPharmacies /></ProtectedLayout>} />
             <Route path="/history" element={<ProtectedLayout><PrescriptionHistory /></ProtectedLayout>} />
