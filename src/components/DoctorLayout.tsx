@@ -27,6 +27,7 @@ const navItems = [
   { title: "Dashboard", path: "/doctor/dashboard", icon: LayoutDashboard },
   { title: "Appointments", path: "/doctor/appointments", icon: Calendar },
   { title: "My Patients", path: "/doctor/patients", icon: Users },
+  { title: "Messages", path: "/doctor/messages", icon: MessageCircle },
   { title: "Prescriptions", path: "/doctor/prescriptions", icon: ClipboardList },
   { title: "Analytics", path: "/doctor/analytics", icon: BarChart3 },
   { title: "Settings", path: "/doctor/settings", icon: Settings },
