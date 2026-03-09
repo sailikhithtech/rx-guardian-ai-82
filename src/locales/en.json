@@ -6,6 +6,7 @@
     "alternatives": "Alternatives",
     "rxbot": "RxBot",
     "reminders": "Reminders",
+    "appointments": "Doctor Appointment",
     "pillId": "Pill ID",
     "pharmacies": "Pharmacies",
     "history": "History",
@@ -266,5 +267,109 @@
   "language": {
     "detected": "We detected your language as {{language}}. You can change this anytime in settings.",
     "changed": "Language changed to {{language}}"
+  },
+  "appointments": {
+    "title": "Doctor Appointments",
+    "findDoctors": "Find Doctors",
+    "searchPlaceholder": "Search doctors or specializations...",
+    "filters": {
+      "specialization": "Specialization",
+      "all": "All Specializations",
+      "availability": "Availability",
+      "today": "Today",
+      "thisWeek": "This Week",
+      "any": "Any",
+      "consultationType": "Consultation Type",
+      "inPerson": "In-Person",
+      "videoCall": "Video Call",
+      "both": "Both",
+      "rating": "Rating",
+      "fourStarAbove": "4★ and above"
+    },
+    "specializations": {
+      "generalPhysician": "General Physician",
+      "cardiologist": "Cardiologist",
+      "dermatologist": "Dermatologist",
+      "gynecologist": "Gynecologist",
+      "neurologist": "Neurologist",
+      "orthopedic": "Orthopedic",
+      "pediatrician": "Pediatrician",
+      "psychiatrist": "Psychiatrist",
+      "diabetologist": "Diabetologist",
+      "entSpecialist": "ENT Specialist",
+      "ophthalmologist": "Ophthalmologist",
+      "dentist": "Dentist"
+    },
+    "doctorCard": {
+      "experience": "{{years}} years exp",
+      "reviews": "{{count}} reviews",
+      "fee": "₹ {{amount}}",
+      "availableToday": "Available Today",
+      "nextAvailable": "Next Available: {{day}}",
+      "viewProfile": "View Profile",
+      "bookNow": "Book Now"
+    },
+    "profile": {
+      "about": "About",
+      "education": "Education & Qualifications",
+      "languages": "Languages Spoken",
+      "awards": "Awards & Recognition",
+      "reviews": "Reviews",
+      "bookAppointment": "Book Appointment"
+    },
+    "booking": {
+      "selectType": "Select Appointment Type",
+      "inPersonVisit": "In-Person Visit",
+      "videoConsultation": "Video Consultation",
+      "selectDate": "Select Date",
+      "selectTime": "Select Time Slot",
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "patientDetails": "Patient Details",
+      "reasonForVisit": "Reason for visit",
+      "attachPrescription": "Attach prescription (optional)",
+      "allergies": "Any allergies or notes",
+      "confirmPay": "Confirm & Pay",
+      "appointmentSummary": "Appointment Summary",
+      "paymentOptions": "Payment Options",
+      "payOnline": "Pay Online (UPI/Card)",
+      "payAtClinic": "Pay at Clinic",
+      "confirmAppointment": "Confirm Appointment"
+    },
+    "confirmation": {
+      "title": "Appointment Confirmed! 🎉",
+      "appointmentId": "Appointment ID: {{id}}",
+      "addToCalendar": "Add to Calendar",
+      "viewMyAppointments": "View My Appointments"
+    },
+    "myAppointments": "My Appointments",
+    "tabs": {
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "cancelled": "Cancelled"
+    },
+    "status": {
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "actions": {
+      "reschedule": "Reschedule",
+      "cancel": "Cancel",
+      "joinVideo": "Join Video Call",
+      "bookAgain": "Book Again",
+      "writeReview": "Write Review",
+      "rebook": "Rebook"
+    },
+    "empty": {
+      "noDoctors": "No doctors found matching your criteria",
+      "noAppointments": "No appointments found"
+    },
+    "reminder": {
+      "tomorrow": "🩺 Appointment Tomorrow with {{doctor}} at {{time}}",
+      "today": "🩺 Appointment Today with {{doctor}} at {{time}}"
+    }
   }
 }

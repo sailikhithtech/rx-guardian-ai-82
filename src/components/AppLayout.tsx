@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, ScanLine, ShieldCheck, ArrowLeftRight, Bot,
   Bell, Search, ClipboardList, User, BarChart3, Menu, X,
-  Pill, Moon, Sun, MapPin, LogOut
+  Pill, Moon, Sun, MapPin, LogOut, Calendar
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -28,6 +28,7 @@ const navKeys = [
   { titleKey: "nav.alternatives", path: "/alternatives", icon: ArrowLeftRight },
   { titleKey: "nav.rxbot", path: "/rxbot", icon: Bot },
   { titleKey: "nav.reminders", path: "/reminders", icon: Bell },
+  { titleKey: "nav.appointments", path: "/appointments", icon: Calendar },
   { titleKey: "nav.pillId", path: "/pill-id", icon: Search },
   { titleKey: "nav.pharmacies", path: "/pharmacies", icon: MapPin },
   { titleKey: "nav.history", path: "/history", icon: ClipboardList },
@@ -39,7 +40,7 @@ const mobileNavKeys = [
   { titleKey: "nav.home", path: "/", icon: LayoutDashboard },
   { titleKey: "nav.analyze", path: "/analyze", icon: ScanLine },
   { titleKey: "nav.rxbot", path: "/rxbot", icon: Bot },
-  { titleKey: "nav.reminders", path: "/reminders", icon: Bell },
+  { titleKey: "nav.appointments", path: "/appointments", icon: Calendar },
   { titleKey: "nav.profile", path: "/profile", icon: User },
 ];
 
