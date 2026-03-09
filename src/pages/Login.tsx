@@ -42,6 +42,8 @@ export default function Login() {
 
   const from = (location.state as any)?.from || (selectedRole === "doctor" ? "/doctor/dashboard" : "/");
   const otpType = authMode === "signup" ? "signup" : "email";
+
+  useEffect(() => {
     if (session || isGuest) navigate(from, { replace: true });
   }, [session, isGuest, navigate, from]);
 
