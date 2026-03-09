@@ -40,7 +40,7 @@ const mobileNavKeys = [
   { titleKey: "nav.home", path: "/", icon: LayoutDashboard },
   { titleKey: "nav.analyze", path: "/analyze", icon: ScanLine },
   { titleKey: "nav.rxbot", path: "/rxbot", icon: Bot },
-  { titleKey: "nav.reminders", path: "/reminders", icon: Bell },
+  { titleKey: "nav.appointments", path: "/appointments", icon: Calendar },
   { titleKey: "nav.profile", path: "/profile", icon: User },
 ];
 
