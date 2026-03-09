@@ -255,9 +255,47 @@ export default function Login() {
 
           <div className="bg-card rounded-2xl border border-border p-6 md:p-8 shadow-card">
             <AnimatePresence mode="wait">
+              {/* ═══ ROLE SELECTION STEP ═══ */}
+              {step === "role" && (
+                <motion.div key="role" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
+                  <h2 className="text-lg font-semibold text-center mb-6">I am a...</h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => { setSelectedRole("patient"); setStep("form"); }}
+                      className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border hover:border-primary/50 transition-colors"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <User className="w-7 h-7 text-primary" />
+                      </div>
+                      <span className="font-semibold">Patient</span>
+                    </button>
+                    <button
+                      onClick={() => { setSelectedRole("doctor"); setStep("form"); }}
+                      className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border hover:border-primary/50 transition-colors"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <Stethoscope className="w-7 h-7 text-primary" />
+                      </div>
+                      <span className="font-semibold">Doctor</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
               {/* ═══ FORM STEP ═══ */}
               {step === "form" && (
                 <motion.div key="form" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
+                  {/* Back to role selection */}
+                  <button onClick={() => setStep("role")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+                    <ArrowLeft className="w-3 h-3" /> Change role
+                  </button>
+
+                  {/* Role indicator */}
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    {selectedRole === "doctor" ? <Stethoscope className="w-4 h-4 text-primary" /> : <User className="w-4 h-4 text-primary" />}
+                    <span className="text-sm font-medium text-primary">{selectedRole === "doctor" ? "Doctor" : "Patient"} Login</span>
+                  </div>
+
                   {/* Tabs */}
                   <div className="flex bg-muted rounded-xl p-1 mb-6">
                     <button
