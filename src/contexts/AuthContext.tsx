@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+
+type UserRole = "patient" | "doctor" | "admin" | null;
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
+  role: UserRole;
   isGuest: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -14,26 +16,61 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+async function resolveRole(user: User): Promise<UserRole> {
+  // 1. Check auth metadata
+  const metaRole = user.user_metadata?.role;
+  if (metaRole === "doctor" || metaRole === "patient") return metaRole;
+
+  // 2. Fallback: check user_roles table
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id);
+
+  if (data?.some((r) => r.role === "doctor")) return "doctor";
+  if (data?.some((r) => r.role === "patient")) return "patient";
+
+  // 3. Fallback: check doctor_profiles table
+  const { data: docProfile } = await supabase
+    .from("doctor_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (docProfile) return "doctor";
+
+  return "patient";
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<UserRole>(null);
   const [isGuest, setIsGuest] = useState(() => localStorage.getItem("rxvision_guest") === "true");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session) {
+      if (session?.user) {
         setIsGuest(false);
         localStorage.removeItem("rxvision_guest");
+        const resolved = await resolveRole(session.user);
+        setRole(resolved);
+      } else {
+        setRole(null);
       }
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        const resolved = await resolveRole(session.user);
+        setRole(resolved);
+      }
       setLoading(false);
     });
 
@@ -43,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsGuest(false);
+    setRole(null);
     localStorage.removeItem("rxvision_guest");
   };
 
@@ -52,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, isGuest, loading, signOut, setGuest }}>
+    <AuthContext.Provider value={{ session, user, role, isGuest, loading, signOut, setGuest }}>
       {children}
     </AuthContext.Provider>
   );
