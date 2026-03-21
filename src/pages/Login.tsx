@@ -101,32 +101,10 @@ export default function Login() {
   };
 
   const navigateByRole = async () => {
-    // Get the fresh user to check their actual role
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const metaRole = user.user_metadata?.role;
-    if (metaRole === "doctor") {
-      navigate("/doctor/dashboard", { replace: true });
-      return;
-    }
-    if (metaRole === "patient") {
-      navigate("/", { replace: true });
-      return;
-    }
-
-    // Fallback: check user_roles table
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-
-    if (roles?.some((r) => r.role === "doctor")) {
-      navigate("/doctor/dashboard", { replace: true });
-      return;
-    }
-
-    // Fallback: check doctor_profiles
+    // Check doctor_profiles first (most reliable)
     const { data: docProfile } = await supabase
       .from("doctor_profiles")
       .select("id")
