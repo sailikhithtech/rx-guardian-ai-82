@@ -17,20 +17,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 async function resolveRole(user: User): Promise<UserRole> {
-  // 1. Check auth metadata
-  const metaRole = user.user_metadata?.role;
-  if (metaRole === "doctor" || metaRole === "patient") return metaRole;
-
-  // 2. Fallback: check user_roles table
-  const { data } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", user.id);
-
-  if (data?.some((r) => r.role === "doctor")) return "doctor";
-  if (data?.some((r) => r.role === "patient")) return "patient";
-
-  // 3. Fallback: check doctor_profiles table
+  // 1. Check doctor_profiles table first (most reliable)
   const { data: docProfile } = await supabase
     .from("doctor_profiles")
     .select("id")
@@ -38,6 +25,18 @@ async function resolveRole(user: User): Promise<UserRole> {
     .maybeSingle();
 
   if (docProfile) return "doctor";
+
+  // 2. Check user_roles table
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id);
+
+  if (data?.some((r) => r.role === "doctor")) return "doctor";
+
+  // 3. Check auth metadata
+  const metaRole = user.user_metadata?.role;
+  if (metaRole === "doctor") return "doctor";
 
   return "patient";
 }
