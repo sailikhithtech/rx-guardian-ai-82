@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, role, isGuest, loading } = useAuth();
+  const { session, isGuest, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -16,11 +16,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   if (!session && !isGuest) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
-  }
-
-  // If a doctor tries to access patient pages, redirect to doctor dashboard
-  if (session && role === "doctor") {
-    return <Navigate to="/doctor/dashboard" replace />;
   }
 
   return <>{children}</>;
